@@ -2,8 +2,7 @@ using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.Universal;
 
-public class GraphicSettingsUpdater : MonoBehaviour
-{
+public class GraphicSettingsUpdater : MonoBehaviour {
     [SerializeField] private Volume bloomVolume;
     [SerializeField] private UniversalRenderPipelineAsset urpAsset;
     [SerializeField] private RenderTexture orthoCameraTexture;
@@ -13,21 +12,16 @@ public class GraphicSettingsUpdater : MonoBehaviour
 
     private Bloom bloom;
 
-
-    private void SetOrthoCameraMSAA(int msaa)
-    {
-#if !UNITY_WEBGL && !UNITY_EDITOR
-        orthoCameraTexture.Release();
-        orthoCameraTexture.antiAliasing = msaa;
-        orthoCameraTexture.Create();
-#endif
+    private void SetOrthoCameraMSAA (int msaa) {
+        #if !UNITY_WEBGL && !UNITY_EDITOR
+            orthoCameraTexture.Release();
+            orthoCameraTexture.antiAliasing = msaa;
+            orthoCameraTexture.Create();
+        #endif
     }
 
-
-    private int GetMSAA(int antiAliasing)
-    {
-        switch(antiAliasing)
-        {
+    private int GetMSAA (int antiAliasing) {
+        switch (antiAliasing) {
             default:
             case 0:
                 return 1;
@@ -39,7 +33,6 @@ public class GraphicSettingsUpdater : MonoBehaviour
                 return 8;
         }
     }
-
 
     public void UpdateGraphicsSettings(string setting)
     {

@@ -42,13 +42,13 @@ public sealed class BeatmapBpmEvent {
 	public float m;
 }
 
-public class BeatmapRotationEvent {
+public sealed class BeatmapRotationEvent {
 	public float b;
 	public float e;
 	public float r;
 }
 
-public class BeatmapNjsEvent {
+public sealed class BeatmapNjsEvent {
 	public float b;
 	public int p;
 	public int e;
@@ -91,19 +91,19 @@ public abstract class BeatmapObject {
 }
 
 [Serializable]
-public class BeatmapCustomDifficultyData {
+public sealed class BeatmapCustomDifficultyData {
 	public BeatmapCustomBookmark[] bookmarks;
 }
 
 [Serializable]
-public class BeatmapCustomBookmark {
+public sealed class BeatmapCustomBookmark {
 	public float b;
 	public string n;
 	public float[] c;
 }
 
 [Serializable]
-public class BeatmapColorNote : BeatmapObject {
+public sealed class BeatmapColorNote : BeatmapObject {
 	public int c;
 	public int d;
 	public int a;
@@ -129,7 +129,7 @@ public class BeatmapColorNote : BeatmapObject {
 }
 
 [Serializable]
-public class BeatmapBombNote : BeatmapObject {
+public sealed class BeatmapBombNote : BeatmapObject {
 	public BeatmapCustomObjectData customData;
 
 	public override void Mirror() {
@@ -207,7 +207,7 @@ public class BeatmapSlider : BeatmapObject {
 }
 
 [Serializable]
-public class BeatmapBurstSlider : BeatmapObject {
+public sealed class BeatmapBurstSlider : BeatmapObject {
 	public int c;
 	public int d;
 	public float tb;
@@ -238,7 +238,7 @@ public class BeatmapBurstSlider : BeatmapObject {
 }
 
 [Serializable]
-public class BeatmapBasicBeatmapEvent {
+public sealed class BeatmapBasicBeatmapEvent {
 	public float b;
 	public int et;
 	public int i;
@@ -248,7 +248,7 @@ public class BeatmapBasicBeatmapEvent {
 }
 
 [Serializable]
-public class BeatmapColorBoostBeatmapEvent {
+public sealed class BeatmapColorBoostBeatmapEvent {
 	public float b;
 	public bool o;
 }
@@ -262,23 +262,23 @@ public class BeatmapCustomObjectData {
 }
 
 [Serializable]
-public class BeatmapCustomNoteData : BeatmapCustomObjectData {
+public sealed class BeatmapCustomNoteData : BeatmapCustomObjectData {
 	//Angle isn't a thing in V3 noodle. This just makes it easier to carry custom _cutDirection into V3
 	public float? angle;
 }
 
 [Serializable]
-public class BeatmapCustomObstacleData : BeatmapCustomObjectData {
+public sealed class BeatmapCustomObstacleData : BeatmapCustomObjectData {
 	public float[] size;
 }
 
 [Serializable]
-public class BeatmapCustomSliderData : BeatmapCustomObjectData {
+public sealed class BeatmapCustomSliderData : BeatmapCustomObjectData {
 	public float[] tailCoordinates;
 }
 
 [Serializable]
-public class BeatmapCustomBasicEventData {
+public sealed class BeatmapCustomBasicEventData {
 	[JsonConverter(typeof(LightIDConverter))]
 	public int[] lightID;
 	public float[] color;
@@ -301,7 +301,7 @@ public class BeatmapCustomBasicEventData {
 }
 
 //A custom json deserializer that converts a single non-array lightID into a list with one element
-public class LightIDConverter : JsonConverter {
+public sealed class LightIDConverter : JsonConverter {
 	public override void WriteJson (JsonWriter writer, object value, JsonSerializer serializer) {
 		throw new NotImplementedException();
 	}
@@ -324,7 +324,7 @@ public class LightIDConverter : JsonConverter {
 	}
 }
 
-public class StringBooleanConverter : JsonConverter {
+public sealed class StringBooleanConverter : JsonConverter {
 	public override void WriteJson (JsonWriter writer, object value, JsonSerializer serializer) {
 		throw new NotImplementedException();
 	}

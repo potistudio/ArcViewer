@@ -1,8 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class ObjectPool : MonoBehaviour
-{
+public class ObjectPool : MonoBehaviour {
     public List<GameObject> AvailableObjects = new List<GameObject>();
     public List<GameObject> ActiveObjects = new List<GameObject>();
 
@@ -35,7 +34,7 @@ public class ObjectPool : MonoBehaviour
                     //Enough objects have been deleted
                     break;
                 }
-                
+
                 Destroy(AvailableObjects[i]);
                 AvailableObjects.RemoveAt(i);
                 deleted++;
