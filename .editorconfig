@@ -4,15 +4,22 @@
 [*.cs]
 
 
-#Core editorconfig formatting - indentation
+# Core editorconfig formatting - indentation
 
-#use soft tabs (spaces) for indentation
-indent_style = space
+# use 4 hard tabs (tab) for indentation
+indent_style = tab
+indent_size = 4
 
-#Formatting - indentation options
+# use UTF-8 LF on all platforms
+charset = utf-8
+end_of_line = lf
 
-#indent switch case contents.
+
+# Formatting - indentation options
+
+# indent switch case contents.
 csharp_indent_case_contents = true
+
 
 #Formatting - new line options
 
