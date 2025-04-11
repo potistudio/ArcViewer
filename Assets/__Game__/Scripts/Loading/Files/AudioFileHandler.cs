@@ -174,26 +174,16 @@ public static class AudioFileHandler
 #endif
 
 
-    public static AudioType GetAudioTypeFromData(byte[] data)
-    {
-        MimeTypes mimeTypes = new MimeTypes();
+    public static AudioType GetAudioTypeFromData (byte[] data) {
+        MimeType type = (new MimeTypes()).GetMimeType (data);
 
-        MimeType type = mimeTypes.GetMimeType(data);
+        Debug.Log ($"Audio is mime type {type.Name}");
 
-        Debug.Log($"Audio is mime type {type.Name}");
-
-        switch(type.Name)
-        {
-            case "audio/wav":
-            case "audio/x-wav":
-                return AudioType.WAV;
-            case "audio/ogg":
-            case "application/x-ogg":
-                return AudioType.OGGVORBIS;
-            case "audio/mpeg":
-                return AudioType.MPEG;
-            default:
-                return AudioType.UNKNOWN;
-        }
+        return type.Name switch {
+			"audio/wav" or "audio/x-wav" => AudioType.WAV,
+			"audio/ogg" or "application/x-ogg" => AudioType.OGGVORBIS,
+			"audio/mpeg" => AudioType.MPEG,
+			_ => AudioType.UNKNOWN
+		};
     }
 }
