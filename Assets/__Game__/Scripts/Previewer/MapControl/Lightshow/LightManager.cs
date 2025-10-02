@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-// using Unity.VisualScripting;
+using Unity.VisualScripting;
 using UnityEngine;
 
 public class LightManager : MonoBehaviour
@@ -9,7 +9,7 @@ public class LightManager : MonoBehaviour
     private static bool _staticLights;
     public static bool StaticLights
     {
-        get => _staticLights || Scrubbing || EnvironmentManager.CurrentSceneIndex < 0 || EnvironmentManager.Loading || SettingsManager.GetBool("staticlights");
+        get => _staticLights || Scrubbing || EnvironmentManager.CurrentSceneIndex < 0 || EnvironmentManager.Loading || SettingsManager.GetBool("staticlights", false);
         set
         {
             _staticLights = value;
@@ -17,7 +17,7 @@ public class LightManager : MonoBehaviour
         }
     }
 
-    private static bool Scrubbing => TimeManager.Scrubbing && SettingsManager.GetBool("staticlightswhilescrubbing");
+    private static bool Scrubbing => TimeManager.Scrubbing && SettingsManager.GetBool("staticlightswhilescrubbing", false);
 
     private static bool _boostActive;
     public static bool BoostActive
@@ -87,6 +87,8 @@ public class LightManager : MonoBehaviour
         int lastBoostEvent = boostEvents.GetLastIndex(TimeManager.CurrentTime, x => x.Beat <= beat);
         BoostActive = lastBoostEvent >= 0 ? boostEvents[lastBoostEvent].Value : false;
 
+        RingManager.UpdateRings();
+
         UpdateLightEventType(LightEventType.BackLasers, backLaserEvents);
         UpdateLightEventType(LightEventType.Rings, ringEvents);
         UpdateLightEventType(LightEventType.LeftRotatingLasers, leftLaserEvents);
@@ -95,8 +97,6 @@ public class LightManager : MonoBehaviour
 
         UpdateLaserSpeedEventType(LightEventType.LeftRotationSpeed, leftLaserSpeedEvents);
         UpdateLaserSpeedEventType(LightEventType.RightRotationSpeed, rightLaserSpeedEvents);
-
-        RingManager.UpdateRings();
     }
 
 
@@ -126,6 +126,7 @@ public class LightManager : MonoBehaviour
             nextEvent = nextEvent,
             type = type,
             eventIndex = eventIndex,
+            eventColor = eventColor,
             laserColor = GetLaserColor(eventColor),
             glowColor = GetLaserGlowColor(eventColor)
         };
@@ -361,7 +362,7 @@ public class LightManager : MonoBehaviour
 
     public void UpdateLightParameters()
     {
-        lightGlowBrightness = SettingsManager.GetFloat("lightglowbrightness");
+        lightGlowBrightness = Mathf.Clamp(SettingsManager.GetFloat("lightglowbrightness"), 0f, 2f);
         if(StaticLights)
         {
             SetStaticLayout();
@@ -407,6 +408,7 @@ public class LightManager : MonoBehaviour
         leftLaserSpeedEvents.Clear();
         rightLaserSpeedEvents.Clear();
 
+        RingManager.AllRingRotationEvents.Clear();
         RingManager.SmallRingRotationEvents.Clear();
         RingManager.BigRingRotationEvents.Clear();
 
@@ -419,14 +421,14 @@ public class LightManager : MonoBehaviour
             return;
         }
 
-        if(SettingsManager.GetBool("skiplights"))
+        if(SettingsManager.GetBool("skiplights", false))
         {
             StaticLights = true;
             return;
         }
 
         //Avoid loading lightshows with too many events (to avoid crashes)
-        int maxEvents = SettingsManager.GetInt("maxlightevents");
+        int maxEvents = SettingsManager.GetInt("maxlightevents", false);
         if(maxEvents > 0 && newDifficulty.beatmapDifficulty.BasicEvents.Length > maxEvents)
         {
             ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Disabled the lightshow because it has too many events.");
@@ -462,7 +464,8 @@ public class LightManager : MonoBehaviour
 
         leftLaserSpeedEvents.SortElementsByBeat();
         rightLaserEvents.SortElementsByBeat();
-
+        
+        RingManager.AllRingRotationEvents.SortElementsByBeat();
         RingManager.SmallRingRotationEvents.SortElementsByBeat();
         RingManager.BigRingRotationEvents.SortElementsByBeat();
 
@@ -514,15 +517,18 @@ public class LightManager : MonoBehaviour
                 rightLaserSpeedEvents.Add(new LaserSpeedEvent(beatmapEvent));
                 break;
             case LightEventType.RingSpin:
+                RingRotationEvent newEvent = new RingRotationEvent(beatmapEvent, false);
+                RingManager.AllRingRotationEvents.Add(newEvent);
+
                 EnvironmentLightParameters envParams = EnvironmentManager.DefaultEnvironmentParameters;
                 //Account for name filters for rotation events that only effect big/small rings
                 if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || envParams.SmallRingNameFilters.Contains(beatmapEvent.customData.nameFilter))
                 {
-                    RingManager.SmallRingRotationEvents.Add(new RingRotationEvent(beatmapEvent, false));
+                    RingManager.SmallRingRotationEvents.Add(newEvent);
                 }
                 if(string.IsNullOrEmpty(beatmapEvent.customData?.nameFilter) || envParams.BigRingNameFilters.Contains(beatmapEvent.customData.nameFilter))
                 {
-                    RingManager.BigRingRotationEvents.Add(new RingRotationEvent(beatmapEvent, true));
+                    RingManager.BigRingRotationEvents.Add(newEvent);
                 }
                 break;
             case LightEventType.RingZoom:

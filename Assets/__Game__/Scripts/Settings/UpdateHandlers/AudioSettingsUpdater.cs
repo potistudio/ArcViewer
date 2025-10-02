@@ -4,7 +4,6 @@ using UnityEngine;
 public class AudioSettingsUpdater : MonoBehaviour
 {
     [SerializeField] private HitSoundManager hitSoundManager;
-    [SerializeField] private ObjectSettingsUpdater objectSettingsUpdater;
 
     [Space]
     [SerializeField] private AudioClip[] hitSounds;
@@ -26,18 +25,33 @@ public class AudioSettingsUpdater : MonoBehaviour
         bool allSettings = setting == "all";
         if(allSettings || setting == "musicvolume")
         {
-            SongManager.Instance.MusicVolume = SettingsManager.GetFloat("musicvolume");
+            SongManager.Instance.MusicVolume = Mathf.Clamp01(SettingsManager.GetFloat("musicvolume"));
         }
 
         if(allSettings || setting == "hitsoundvolume" || setting == "chainvolume")
         {
+            float hitSoundVolume = Mathf.Clamp01(SettingsManager.GetFloat("hitsoundvolume"));
 #if !UNITY_WEBGL || UNITY_EDITOR
-            float hitsoundVolume = SettingsManager.GetFloat("hitsoundvolume");
-            hitSoundManager.HitSoundVolume = hitsoundVolume;
-            hitSoundManager.ChainVolume = SettingsManager.GetFloat("chainvolume") * hitsoundVolume;
+            hitSoundManager.HitSoundVolume = hitSoundVolume;
+            hitSoundManager.ChainVolume = Mathf.Clamp01(SettingsManager.GetFloat("chainvolume")) * hitSoundVolume;
 #else
+            float chainSoundVolume = SettingsManager.GetFloat("chainvolume");
+
             WebHitSoundController.SetHitSoundVolume(SettingsManager.GetFloat("hitsoundvolume"));
             WebHitSoundController.SetChainSoundVolume(SettingsManager.GetFloat("chainvolume"));
+
+            bool hitSoundsOff = WebHitSoundController.CurrentHitSoundVolume < Mathf.Epsilon;
+            bool chainSoundsOff = WebHitSoundController.CurrentChainSoundVolume < Mathf.Epsilon;
+            if((hitSoundsOff && hitSoundVolume > Mathf.Epsilon) || (chainSoundsOff && chainSoundVolume > Mathf.Epsilon))
+            {
+                //Reschedule hitsounds if volume is going from 0 to greater than zero
+                //This is necessary because web audio refuses to process audio with 0 volume
+                HitSoundManager.ClearScheduledSounds();
+                ObjectManager.Instance.RescheduleHitsounds(TimeManager.Playing);
+            }
+
+            WebHitSoundController.CurrentHitSoundVolume = hitSoundVolume;
+            WebHitSoundController.CurrentChainSoundVolume = chainSoundVolume;
 #endif
         }
 

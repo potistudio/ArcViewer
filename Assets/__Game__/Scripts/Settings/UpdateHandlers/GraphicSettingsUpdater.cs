@@ -40,7 +40,7 @@ public class GraphicSettingsUpdater : MonoBehaviour {
 
         if(allSettings || setting == "vsync" || setting == "framecap")
         {
-            bool vsync = SettingsManager.GetBool("vsync");
+            bool vsync = SettingsManager.GetBool("vsync", false);
             QualitySettings.vSyncCount = vsync ? 1 : 0;
             if(vsync)
             {
@@ -48,7 +48,7 @@ public class GraphicSettingsUpdater : MonoBehaviour {
             }
             else
             {
-                int framecap = SettingsManager.GetInt("framecap");
+                int framecap = SettingsManager.GetInt("framecap", false);
 
                 //Value of -1 uncaps the framerate
                 if(framecap <= 0 || framecap > 200) framecap = -1;
@@ -60,7 +60,7 @@ public class GraphicSettingsUpdater : MonoBehaviour {
 #if !UNITY_WEBGL || UNITY_EDITOR
         if(allSettings || setting == "antialiasing")
         {
-            int antiAliasing = SettingsManager.GetInt("antialiasing");
+            int antiAliasing = SettingsManager.GetInt("antialiasing", false);
             Camera.main.allowMSAA = antiAliasing > 0;
 
             int msaa = GetMSAA(antiAliasing);
@@ -76,24 +76,24 @@ public class GraphicSettingsUpdater : MonoBehaviour {
 
         if(allSettings || setting == "bloom")
         {
-            bloom.intensity.value = defaultBloomStrength * SettingsManager.GetFloat("bloom");
+            bloom.intensity.value = defaultBloomStrength * Mathf.Clamp(SettingsManager.GetFloat("bloom"), 0f, 2f);
             bloom.active = bloom.intensity.value >= 0.001f;
         }
 
         if(allSettings || setting == "renderscale")
         {
-            urpAsset.renderScale = Mathf.Clamp(SettingsManager.GetFloat("renderscale"), 0.5f, 2f);
+            urpAsset.renderScale = Mathf.Clamp(SettingsManager.GetFloat("renderscale", false), 0.5f, 2f);
         }
 
         if(allSettings || setting == "upscaling")
         {
-            bool useUpscaling = SettingsManager.GetBool("upscaling");
+            bool useUpscaling = SettingsManager.GetBool("upscaling", false);
             urpAsset.upscalingFilter = useUpscaling ? UpscalingFilterSelection.FSR : UpscalingFilterSelection.Auto;
         }
 
         if(allSettings || setting == "bloomfogquality" || setting == "lightglowbrightness")
         {
-            float bloomfogBrightness = SettingsManager.GetFloat("lightglowbrightness");
+            float bloomfogBrightness = Mathf.Clamp(SettingsManager.GetFloat("lightglowbrightness"), 0f, 2f);
             if(bloomfogBrightness < 0.001f)
             {
                 Bloomfog.Enabled = false;
@@ -101,7 +101,7 @@ public class GraphicSettingsUpdater : MonoBehaviour {
             else
             {
                 Bloomfog.Enabled = true;
-                Bloomfog.Quality = SettingsManager.GetInt("bloomfogquality");
+                Bloomfog.Quality = SettingsManager.GetInt("bloomfogquality", false);
             }
         }
     }

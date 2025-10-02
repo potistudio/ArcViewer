@@ -9,7 +9,8 @@ public class UrlArgHandler : MonoBehaviour
 {
     public const string ArcViewerName = "ArcViewer";
     public const string ArcViewerURL = "https://allpoland.github.io/ArcViewer/";
-    public const string BeatLeaderViewerURL = "https://replay.beatleader.xyz/";
+    public const string OldBeatLeaderViewerURL = "https://replay.beatleader.xyz/";
+    public const string BeatLeaderViewerURL = "https://replay.beatleader.com/";
 
     [DllImport("__Internal")]
     public static extern string GetParameters();
@@ -81,6 +82,12 @@ public class UrlArgHandler : MonoBehaviour
     private static DifficultyRank? diffRank;
     private static bool noProxy;
 
+    private static bool uiOff;
+    private static bool autoPlay;
+    private static bool loop;
+
+    private static string settingsOverride;
+
     [SerializeField] private MapLoader mapLoader;
 
 
@@ -125,6 +132,19 @@ public class UrlArgHandler : MonoBehaviour
                 mapPath = value;
                 break;
 #endif
+            case "uiOff":
+                uiOff = bool.TryParse(value, out uiOff) ? uiOff : false;
+                break;
+            case "autoPlay":
+                autoPlay = bool.TryParse(value, out autoPlay) ? autoPlay : false;
+                break;
+            case "loop":
+                loop = bool.TryParse(value, out loop) ? loop : false;
+                break;
+
+            case "settingsOverride":
+                settingsOverride = value;
+                break;
         }
     }
 
@@ -184,6 +204,21 @@ public class UrlArgHandler : MonoBehaviour
         }
 #endif
 
+        if(uiOff)
+        {
+            UIHideInput.SetUIVisible(false);
+        }
+
+        if(loop)
+        {
+            TimeManager.Loop = true;
+        }
+
+        if(autoPlay)
+        {
+            BeatmapManager.OnBeatmapDifficultyChanged += StartPlaying;
+        }
+
         //Only apply start time and diff when a map is also included in the arguments
         if(setTime && startTime > 0)
         {
@@ -193,6 +228,21 @@ public class UrlArgHandler : MonoBehaviour
         if(setDiff && (mode != null || diffRank != null))
         {
             MapLoader.OnMapLoaded += SetDifficulty;
+        }
+
+        if(!string.IsNullOrEmpty(settingsOverride))
+        {
+            try
+            {
+                //Parse the overrides and send them to SettingsManager
+                Settings newOverrides = JsonReader.DeserializeObject<Settings>(settingsOverride);
+                SettingsManager.Overrides = newOverrides;
+            }
+            catch(Exception err)
+            {
+                Debug.LogWarning($"Failed to parse settings override with error: {err.Message}, {err.StackTrace}");
+                SettingsManager.Overrides = null;
+            }
         }
     }
 
@@ -213,8 +263,6 @@ public class UrlArgHandler : MonoBehaviour
         }
 
         ResetArguments();
-
-        url = HttpUtility.UrlDecode(url);
 
         List<KeyValuePair<string, string>> parameters = UrlUtility.ParseUrlParams(url);
         if(parameters.Count == 0)
@@ -261,6 +309,13 @@ public class UrlArgHandler : MonoBehaviour
         }
 
         ApplyArguments();
+    }
+
+
+    private void StartPlaying(Difficulty difficulty)
+    {
+        TimeManager.SetPlaying(true);
+        BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
     }
 
 
@@ -312,11 +367,18 @@ public class UrlArgHandler : MonoBehaviour
         noProxy = false;
         replayURL = "";
         replayID = "";
+
+        uiOff = false;
+        autoPlay = false;
+        loop = false;
+
+        settingsOverride = null;
     }
 
 
     public void ClearSubscriptions()
     {
+        BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
         MapLoader.OnMapLoaded -= SetTime;
         MapLoader.OnMapLoaded -= SetDifficulty;
     }
@@ -335,6 +397,15 @@ public class UrlArgHandler : MonoBehaviour
 
         LoadedCharacteristic = newDifficulty.characteristic;
         LoadedDiffRank = newDifficulty.difficultyRank;
+    }
+
+
+    public void UpdateUIState(UIState newState)
+    {
+        if(newState == UIState.MapSelection)
+        {
+            ClearSubscriptions();
+        }
     }
 
 
@@ -392,6 +463,7 @@ public class UrlArgHandler : MonoBehaviour
             Debug.LogWarning("The system doesn't support command-line arguments!");
         }
 #endif
+        UIStateManager.OnUIStateChanged += UpdateUIState;
         MapLoader.OnLoadingFailed += ClearSubscriptions;
         BeatmapManager.OnBeatmapDifficultyChanged += UpdateLoadedDifficulty;
     }
