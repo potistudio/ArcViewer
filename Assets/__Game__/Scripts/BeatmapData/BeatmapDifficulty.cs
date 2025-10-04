@@ -5,23 +5,49 @@ using Newtonsoft.Json;
 using UnityEngine;
 
 public abstract class BeatmapDifficulty {
-	public abstract string Version { get; }
+	public abstract string Version {
+		get;
+	}
 
-	public abstract BeatmapElementList<BeatmapBpmEvent> BpmEvents { get; }
-	public abstract BeatmapElementList<BeatmapRotationEvent> RotationEvents { get; }
+	public abstract BeatmapElementList<BeatmapBpmEvent> BpmEvents {
+		get;
+	}
+	public abstract BeatmapElementList<BeatmapRotationEvent> RotationEvents {
+		get;
+	}
 
-	public abstract BeatmapElementList<BeatmapColorNote> Notes { get; }
-	public abstract BeatmapElementList<BeatmapBombNote> Bombs { get; }
-	public abstract BeatmapElementList<BeatmapObstacle> Walls { get; }
-	public abstract BeatmapElementList<BeatmapSlider> Arcs { get; }
-	public abstract BeatmapElementList<BeatmapBurstSlider> Chains { get; }
+	public abstract BeatmapElementList<BeatmapColorNote> Notes {
+		get;
+	}
+	public abstract BeatmapElementList<BeatmapBombNote> Bombs {
+		get;
+	}
+	public abstract BeatmapElementList<BeatmapObstacle> Walls {
+		get;
+	}
+	public abstract BeatmapElementList<BeatmapSlider> Arcs {
+		get;
+	}
+	public abstract BeatmapElementList<BeatmapBurstSlider> Chains {
+		get;
+	}
 
-	public abstract BeatmapElementList<BeatmapNjsEvent> NjsEvents { get; }
+	public abstract BeatmapElementList<BeatmapNjsEvent> NjsEvents {
+		get;
+	}
 
-	public abstract BeatmapElementList<BeatmapBasicBeatmapEvent> BasicEvents { get; }
-	public abstract BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents { get; }
+	public abstract BeatmapElementList<BeatmapBasicBeatmapEvent> BasicEvents {
+		get;
+	}
+	public abstract BeatmapElementList<BeatmapColorBoostBeatmapEvent> BoostEvents {
+		get;
+	}
 
-	public abstract BeatmapCustomDifficultyData CustomData { get; }
+	public abstract BeatmapCustomDifficultyData CustomData {
+		get;
+	}
+
+	public List<Bookmark> bookmarks;
 
 	public static BeatmapDifficulty GetDefault() {
 		//This is abstracted from the constructor to easily change the default later
@@ -30,7 +56,9 @@ public abstract class BeatmapDifficulty {
 }
 
 public abstract class BeatmapElementList<T> : IEnumerable<T> {
-	public abstract int Length { get; }
+	public abstract int Length {
+		get;
+	}
 	public abstract T this[int i] { get; }
 
 	IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
@@ -62,20 +90,20 @@ public abstract class BeatmapObject {
 
 	public abstract void Mirror();
 
-	public int MirrorPosition (int x) {
-		if (Mathf.Abs(x) >= 1000) {
-			float position = ObjectManager.MappingExtensionsPrecision(x);
+	public int MirrorPosition(int p) {
+		if (Mathf.Abs(p) >= 1000) {
+			float position = ObjectManager.MappingExtensionsPrecision(p);
 			position = -(position - 2) + 1;
-			return Mathf.RoundToInt ((position * 1000) + Mathf.Sign(position) * 1000);
-		} else return -(x - 2) + 1;
+			return Mathf.RoundToInt((position * 1000) + Mathf.Sign(position) * 1000);
+		} else return -(p - 2) + 1;
 	}
 
-	public float MirrorNoodlePosition (float x) {
+	public float MirrorNoodlePosition(float p) {
 		//Noodle coordinates are centered around the middle right column
-		return -(x + 0.5f) - 0.5f;
+		return -(p + 0.5f) - 0.5f;
 	}
 
-	public int MirrorDirection (int d) {
+	public int MirrorDirection(int d) {
 		if (d >= 1000) {
 			int angle = (d - 1000) % 360;
 
@@ -111,14 +139,14 @@ public sealed class BeatmapColorNote : BeatmapObject {
 	public BeatmapCustomNoteData customData;
 
 	public override void Mirror() {
-		x = MirrorPosition (x);
+		x = MirrorPosition(x);
 		c = c == 1 ? 0 : 1;
-		d = MirrorDirection (d);
+		d = MirrorDirection(d);
 		a = -a;
 
 		if (customData != null) {
 			if (customData.coordinates != null && customData.coordinates.Length != 0) {
-				customData.coordinates[0] = MirrorNoodlePosition (customData.coordinates[0]);
+				customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
 			}
 
 			if (customData.angle != null) {
@@ -133,10 +161,10 @@ public sealed class BeatmapBombNote : BeatmapObject {
 	public BeatmapCustomObjectData customData;
 
 	public override void Mirror() {
-		x = MirrorPosition (x);
+		x = MirrorPosition(x);
 
 		if (customData?.coordinates != null && customData.coordinates.Length != 0) {
-			customData.coordinates[0] = MirrorNoodlePosition (customData.coordinates[0]);
+			customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
 		}
 	}
 }
@@ -151,11 +179,11 @@ public class BeatmapObstacle : BeatmapObject {
 
 	public override void Mirror() {
 		if (Mathf.Abs(x) >= 1000 || Mathf.Abs(w) >= 1000) {
-			float width = ObjectManager.MappingExtensionsPrecision (w);
-			float position = ObjectManager.MappingExtensionsPrecision (x);
+			float width = ObjectManager.MappingExtensionsPrecision(w);
+			float position = ObjectManager.MappingExtensionsPrecision(x);
 			position = -(position + (width - 1) - 2) + 1;
-			x = Mathf.RoundToInt ((position * 1000) + Mathf.Sign(position) * 1000);
-		} else x = MirrorPosition (x + (w - 1));
+			x = Mathf.RoundToInt((position * 1000) + Mathf.Sign(position) * 1000);
+		} else x = MirrorPosition(x + (w - 1));
 
 		if (customData != null) {
 			if (customData.coordinates != null && customData.coordinates.Length != 0) {
@@ -184,23 +212,23 @@ public class BeatmapSlider : BeatmapObject {
 	public BeatmapCustomSliderData customData;
 
 	public override void Mirror() {
-		x = MirrorPosition (x);
+		x = MirrorPosition(x);
 		c = c == 1 ? 0 : 1;
-		d = MirrorDirection (d);
+		d = MirrorDirection(d);
 
-		tx = -(tx - 2) + 1;
-		tc = MirrorDirection (tc);
+		tx = MirrorPosition(tx);
+		tc = MirrorDirection(tc);
 
 		m = m == 0 ? 0
 			: m == 1 ? 2 : 1;
 
 		if (customData != null) {
 			if (customData.coordinates != null && customData.coordinates.Length != 0) {
-				customData.coordinates[0] = MirrorNoodlePosition (customData.coordinates[0]);
+				customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
 			}
 
 			if (customData.tailCoordinates != null && customData.tailCoordinates.Length != 0) {
-				customData.tailCoordinates[0] = MirrorNoodlePosition (customData.tailCoordinates[0]);
+				customData.tailCoordinates[0] = MirrorNoodlePosition(customData.tailCoordinates[0]);
 			}
 		}
 	}
@@ -219,19 +247,19 @@ public sealed class BeatmapBurstSlider : BeatmapObject {
 	public BeatmapCustomSliderData customData;
 
 	public override void Mirror() {
-		x = MirrorPosition (x);
+		x = MirrorPosition(x);
 		c = c == 1 ? 0 : 1;
-		d = MirrorDirection (d);
+		d = MirrorDirection(d);
 
 		tx = -(tx - 2) + 1;
 
 		if (customData != null) {
 			if (customData.coordinates != null && customData.coordinates.Length != 0) {
-				customData.coordinates[0] = MirrorNoodlePosition (customData.coordinates[0]);
+				customData.coordinates[0] = MirrorNoodlePosition(customData.coordinates[0]);
 			}
 
 			if (customData.tailCoordinates != null && customData.tailCoordinates.Length != 0) {
-				customData.tailCoordinates[0] = MirrorNoodlePosition (customData.tailCoordinates[0]);
+				customData.tailCoordinates[0] = MirrorNoodlePosition(customData.tailCoordinates[0]);
 			}
 		}
 	}
@@ -302,14 +330,14 @@ public sealed class BeatmapCustomBasicEventData {
 
 //A custom json deserializer that converts a single non-array lightID into a list with one element
 public sealed class LightIDConverter : JsonConverter {
-	public override void WriteJson (JsonWriter writer, object value, JsonSerializer serializer) {
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
 		throw new NotImplementedException();
 	}
 
-	public override object ReadJson (Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
+	public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
 		int[] val = null;
 
-		if(reader.TokenType == JsonToken.Integer) {
+		if (reader.TokenType == JsonToken.Integer) {
 			int id = serializer.Deserialize<int>(reader);
 			val = new int[] { id };
 		} else if (reader.TokenType == JsonToken.StartArray) {
@@ -319,30 +347,30 @@ public sealed class LightIDConverter : JsonConverter {
 		return val;
 	}
 
-	public override bool CanConvert (Type objectType) {
+	public override bool CanConvert(Type objectType) {
 		return true;
 	}
 }
 
 public sealed class StringBooleanConverter : JsonConverter {
-	public override void WriteJson (JsonWriter writer, object value, JsonSerializer serializer) {
+	public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
 		throw new NotImplementedException();
 	}
 
-	public override object ReadJson (Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
+	public override object ReadJson(Newtonsoft.Json.JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
 		bool val = false;
 
-		if(reader.TokenType == JsonToken.Boolean) {
+		if (reader.TokenType == JsonToken.Boolean) {
 			val = serializer.Deserialize<bool>(reader);
 		} else if (reader.TokenType == JsonToken.String) {
 			string stringValue = serializer.Deserialize<string>(reader);
-			val = bool.TryParse (stringValue, out bool parsedVal) && parsedVal;
+			val = bool.TryParse(stringValue, out bool parsedVal) && parsedVal;
 		}
 
 		return val;
 	}
 
-	public override bool CanConvert (Type objectType) {
+	public override bool CanConvert(Type objectType) {
 		return true;
 	}
 }

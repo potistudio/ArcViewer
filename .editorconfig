@@ -24,15 +24,15 @@ csharp_indent_case_contents = true
 #Formatting - new line options
 
 #place catch statements on a new line
-csharp_new_line_before_catch = true
+csharp_new_line_before_catch = false
 #place else statements on a new line
-csharp_new_line_before_else = true
+csharp_new_line_before_else = false
 #require finally statements to be on a new line after the closing brace
-csharp_new_line_before_finally = true
+csharp_new_line_before_finally = false
 #require members of object initializers to be on the same line
 csharp_new_line_before_members_in_object_initializers = false
 #require braces to be on a new line for object_collection_array_initializers, accessors, types, control_blocks, lambdas, methods, and properties (also known as "Allman" style)
-csharp_new_line_before_open_brace = object_collection_array_initializers, accessors, types, control_blocks, lambdas, methods, properties
+csharp_new_line_before_open_brace = false
 
 #Formatting - organize using options
 
@@ -46,7 +46,7 @@ csharp_space_after_cast = false
 #require a space before the colon for bases or interfaces in a type declaration
 csharp_space_after_colon_in_inheritance_clause = true
 #require NO space after a keyword in a control flow statement such as a for loop
-csharp_space_after_keywords_in_control_flow_statements = false
+csharp_space_after_keywords_in_control_flow_statements = true
 #require a space before the colon for bases or interfaces in a type declaration
 csharp_space_before_colon_in_inheritance_clause = true
 #remove space within empty argument list parentheses
