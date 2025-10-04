@@ -1,1 +1,2 @@
-public class TMProPool : ObjectPool<ScoreIndicatorHandler> { }
+public class TMProPool : ObjectPool<ScoreIndicatorHandler> {
+}

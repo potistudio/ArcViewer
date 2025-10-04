@@ -1,1 +1,2 @@
-public class WallPool : ObjectPool<WallHandler> { }
+public class WallPool : ObjectPool<WallHandler> {
+}

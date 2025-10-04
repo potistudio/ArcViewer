@@ -1,1 +1,2 @@
-public class BombPool : ObjectPool<BombHandler> { }
+public class BombPool : ObjectPool<BombHandler> {
+}

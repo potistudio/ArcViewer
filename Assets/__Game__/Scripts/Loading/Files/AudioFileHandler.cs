@@ -8,8 +8,7 @@ using UnityEngine.Networking;
 using Winista.Mime;
 
 #pragma warning disable CS4014 //Suppress warnings about lack of await for uwr.SendWebRequest()
-public static class AudioFileHandler
-{
+public static class AudioFileHandler {
 #if UNITY_WEBGL && !UNITY_EDITOR
     private static AudioUploadState uploadState;
 
@@ -79,111 +78,95 @@ public static class AudioFileHandler
 #else
 
 
-    public static async Task<AudioClip> LoadAudioDirectory(string directory, string filename = "")
-    {
-        if(!File.Exists(directory))
-        {
-            return null;
-        }
+	public static async Task<AudioClip> LoadAudioDirectory(string directory, string filename = "") {
+		if (!File.Exists(directory)) {
+			return null;
+		}
 
-        string fileString = string.IsNullOrEmpty(filename) ? directory : filename;
-        AudioType type = await GetAudioTypeFromFile(fileString, directory);
-        Debug.Log($"Loading audio file with type of {type}.");
-        return await GetAudioFromFile(directory, type);
-    }
+		string fileString = string.IsNullOrEmpty(filename) ? directory : filename;
+		AudioType type = await GetAudioTypeFromFile(fileString, directory);
+		Debug.Log($"Loading audio file with type of {type}.");
+		return await GetAudioFromFile(directory, type);
+	}
 
 
-    public static async Task<AudioType> GetAudioTypeFromFile(string fileName, string directory = "")
-    {
-        //Uncomment to get the type based on file extension
-        //(Marginal performance improvement but makes files with incorrect extension unloadable)
-        // if(fileName.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase) || fileName.EndsWith(".egg", StringComparison.InvariantCultureIgnoreCase))
-        // {
-        //     return AudioType.OGGVORBIS;
-        // }
-        // else if(fileName.EndsWith(".wav", StringComparison.InvariantCultureIgnoreCase))
-        // {
-        //     return AudioType.WAV;
-        // }
-        // else if(fileName.EndsWith(".mp3", StringComparison.InvariantCultureIgnoreCase))
-        // {
-        //     return AudioType.MPEG;
-        // }
+	public static async Task<AudioType> GetAudioTypeFromFile(string fileName, string directory = "") {
+		//Uncomment to get the type based on file extension
+		//(Marginal performance improvement but makes files with incorrect extension unloadable)
+		// if(fileName.EndsWith(".ogg", StringComparison.InvariantCultureIgnoreCase) || fileName.EndsWith(".egg", StringComparison.InvariantCultureIgnoreCase))
+		// {
+		//     return AudioType.OGGVORBIS;
+		// }
+		// else if(fileName.EndsWith(".wav", StringComparison.InvariantCultureIgnoreCase))
+		// {
+		//     return AudioType.WAV;
+		// }
+		// else if(fileName.EndsWith(".mp3", StringComparison.InvariantCultureIgnoreCase))
+		// {
+		//     return AudioType.MPEG;
+		// }
 
-        if(string.IsNullOrEmpty(directory))
-        {
-            //If no directory is given, the name is the directory
-            directory = fileName;
-        }
+		if (string.IsNullOrEmpty(directory)) {
+			//If no directory is given, the name is the directory
+			directory = fileName;
+		}
 
-        if(!File.Exists(directory)) return AudioType.UNKNOWN;
+		if (!File.Exists(directory)) return AudioType.UNKNOWN;
 
-        try
-        {
-            // Debug.Log($"Unable to match audio type by file extension from {fileName}");
-            byte[] audioData = await File.ReadAllBytesAsync(directory);
-            return GetAudioTypeFromData(audioData);
-        }
-        catch(Exception e)
-        {
-            Debug.LogWarning($"Failed to read audio file data with error: {e.Message}, {e.StackTrace}");
-            return AudioType.UNKNOWN;
-        }
-    }
+		try {
+			// Debug.Log($"Unable to match audio type by file extension from {fileName}");
+			byte[] audioData = await File.ReadAllBytesAsync(directory);
+			return GetAudioTypeFromData(audioData);
+		} catch (Exception e) {
+			Debug.LogWarning($"Failed to read audio file data with error: {e.Message}, {e.StackTrace}");
+			return AudioType.UNKNOWN;
+		}
+	}
 
 
-    public static async Task<AudioClip> GetAudioFromFile(string path, AudioType type)
-    {
-        if(!File.Exists(path))
-        {
-            Debug.LogWarning("Trying to load audio from a nonexistant file!");
-            return null;
-        }
+	public static async Task<AudioClip> GetAudioFromFile(string path, AudioType type) {
+		if (!File.Exists(path)) {
+			Debug.LogWarning("Trying to load audio from a nonexistant file!");
+			return null;
+		}
 
-        AudioClip song = null;
-        try
-        {
-            Uri uri = new Uri(path);
-            DownloadHandlerAudioClip downloadHandler = new DownloadHandlerAudioClip(uri, type);
+		AudioClip song = null;
+		try {
+			Uri uri = new Uri(path);
+			DownloadHandlerAudioClip downloadHandler = new DownloadHandlerAudioClip(uri, type);
 
-            using(UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(uri, type))
-            {
-                Debug.Log("Getting AudioClip from file.");
-                audioUwr.SendWebRequest();
+			using (UnityWebRequest audioUwr = UnityWebRequestMultimedia.GetAudioClip(uri, type)) {
+				Debug.Log("Getting AudioClip from file.");
+				audioUwr.SendWebRequest();
 
-                while(!audioUwr.isDone) await Task.Yield();
+				while (!audioUwr.isDone) await Task.Yield();
 
-                if(audioUwr.result != UnityWebRequest.Result.Success)
-                {
-                    Debug.LogWarning($"Song uwr failed with error: {audioUwr.error}");
-                    return song;
-                }
-                else
-                {
-                    song = DownloadHandlerAudioClip.GetContent(audioUwr);
-                }
-            }
-        }
-        catch(Exception err)
-        {
-            Debug.LogWarning($"Audio loading failed with exception: {err.Message}, {err.StackTrace}");
-        }
+				if (audioUwr.result != UnityWebRequest.Result.Success) {
+					Debug.LogWarning($"Song uwr failed with error: {audioUwr.error}");
+					return song;
+				} else {
+					song = DownloadHandlerAudioClip.GetContent(audioUwr);
+				}
+			}
+		} catch (Exception err) {
+			Debug.LogWarning($"Audio loading failed with exception: {err.Message}, {err.StackTrace}");
+		}
 
-        return song;
-    }
+		return song;
+	}
 #endif
 
 
-    public static AudioType GetAudioTypeFromData (byte[] data) {
-        MimeType type = (new MimeTypes()).GetMimeType (data);
+	public static AudioType GetAudioTypeFromData(byte[] data) {
+		MimeType type = (new MimeTypes()).GetMimeType(data);
 
-        Debug.Log ($"Audio is mime type {type.Name}");
+		Debug.Log($"Audio is mime type {type.Name}");
 
-        return type.Name switch {
+		return type.Name switch {
 			"audio/wav" or "audio/x-wav" => AudioType.WAV,
 			"audio/ogg" or "application/x-ogg" => AudioType.OGGVORBIS,
 			"audio/mpeg" => AudioType.MPEG,
 			_ => AudioType.UNKNOWN
 		};
-    }
+	}
 }

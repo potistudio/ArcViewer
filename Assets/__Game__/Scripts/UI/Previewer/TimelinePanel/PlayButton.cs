@@ -1,39 +1,33 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class PlayButton : MonoBehaviour
-{
-    [SerializeField] private Sprite PlaySprite;
-    [SerializeField] private Sprite PauseSprite;
+public class PlayButton : MonoBehaviour {
+	[SerializeField] private Sprite PlaySprite;
+	[SerializeField] private Sprite PauseSprite;
 
-    private Image image;
-
-
-    public void TogglePlaying()
-    {
-        TimeManager.TogglePlaying();
-    }
+	private Image image;
 
 
-    public void UpdatePlaying(bool newPlaying)
-    {
-        image.sprite = newPlaying || TimeManager.ForcePause ? PauseSprite : PlaySprite;
-    }
+	public void TogglePlaying() {
+		TimeManager.TogglePlaying();
+	}
 
 
-    private void Update()
-    {
-        if((Input.GetButtonDown("Pause") || Input.GetButtonDown("PauseAlt")) && !DialogueHandler.LogActive)
-        {
-            TogglePlaying();
-        }
-    }
+	public void UpdatePlaying(bool newPlaying) {
+		image.sprite = newPlaying || TimeManager.ForcePause ? PauseSprite : PlaySprite;
+	}
 
 
-    private void Start()
-    {
-        TimeManager.OnPlayingChanged += UpdatePlaying;
+	private void Update() {
+		if ((Input.GetButtonDown("Pause") || Input.GetButtonDown("PauseAlt")) && !DialogueHandler.LogActive) {
+			TogglePlaying();
+		}
+	}
 
-        image = GetComponent<Image>();
-    }
+
+	private void Start() {
+		TimeManager.OnPlayingChanged += UpdatePlaying;
+
+		image = GetComponent<Image>();
+	}
 }

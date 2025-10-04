@@ -1,1 +1,2 @@
-public sealed class NotePool : ObjectPool<NoteHandler> { }
+public sealed class NotePool : ObjectPool<NoteHandler> {
+}

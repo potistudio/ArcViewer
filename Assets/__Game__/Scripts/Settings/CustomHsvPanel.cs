@@ -1,42 +1,37 @@
 using UnityEngine;
 using TMPro;
 
-public class CustomHsvPanel : MonoBehaviour
-{
-    [SerializeField] private HsvLoader hsvLoader;
-    [SerializeField] private TMP_InputField inputField;
-    [SerializeField] private GameObject errorIcon;
+public class CustomHsvPanel : MonoBehaviour {
+	[SerializeField] private HsvLoader hsvLoader;
+	[SerializeField] private TMP_InputField inputField;
+	[SerializeField] private GameObject errorIcon;
 
-    [Space]
-    [SerializeField] private string hsvRepoURL;
-
-
-    public void SetConfig(string configJson) => hsvLoader.SetHSV(configJson);
+	[Space]
+	[SerializeField] private string hsvRepoURL;
 
 
-    public void OpenInfoURL()
-    {
-        Application.OpenURL(hsvRepoURL);
-    }
+	public void SetConfig(string configJson) => hsvLoader.SetHSV(configJson);
 
 
-    private void UpdateErrorIcon()
-    {
-        errorIcon.SetActive(!HsvLoader.ValidConfig);
-    }
+	public void OpenInfoURL() {
+		Application.OpenURL(hsvRepoURL);
+	}
 
 
-    private void OnEnable()
-    {
-        inputField.SetTextWithoutNotify(HsvLoader.CustomConfigJson ?? "");
-        UpdateErrorIcon();
-
-        HsvLoader.OnCustomHSVUpdated += UpdateErrorIcon;
-    }
+	private void UpdateErrorIcon() {
+		errorIcon.SetActive(!HsvLoader.ValidConfig);
+	}
 
 
-    private void OnDisable()
-    {
-        HsvLoader.OnCustomHSVUpdated -= UpdateErrorIcon;
-    }
+	private void OnEnable() {
+		inputField.SetTextWithoutNotify(HsvLoader.CustomConfigJson ?? "");
+		UpdateErrorIcon();
+
+		HsvLoader.OnCustomHSVUpdated += UpdateErrorIcon;
+	}
+
+
+	private void OnDisable() {
+		HsvLoader.OnCustomHSVUpdated -= UpdateErrorIcon;
+	}
 }

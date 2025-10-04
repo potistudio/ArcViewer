@@ -1,33 +1,28 @@
 using UnityEngine;
 
 [RequireComponent(typeof(ColorPicker))]
-public class SettingsColorPicker : MonoBehaviour
-{
-    [SerializeField] private string rule;
-    [SerializeField] private bool hideInWebGL;
-    [SerializeField] private Optional<SerializedOption<bool>> requiredSetting = new Optional<SerializedOption<bool>>(new SerializedOption<bool>(), false);
+public class SettingsColorPicker : MonoBehaviour {
+	[SerializeField] private string rule;
+	[SerializeField] private bool hideInWebGL;
+	[SerializeField] private Optional<SerializedOption<bool>> requiredSetting = new Optional<SerializedOption<bool>>(new SerializedOption<bool>(), false);
 
-    private ColorPicker colorPicker;
-
-
-    public void SetValue(Color value)
-    {
-        SettingsManager.SetRule(rule, value);
-    }
+	private ColorPicker colorPicker;
 
 
-    public void UpdateSettings(string changedSetting)
-    {
-        SerializedOption<bool> option = requiredSetting.Value;
-        if(changedSetting == "all" || changedSetting == option.Name)
-        {
-            colorPicker.Interactable = option.Value == SettingsManager.GetBool(option.Name, false);
-        }
-    }
+	public void SetValue(Color value) {
+		SettingsManager.SetRule(rule, value);
+	}
 
 
-    private void OnEnable()
-    {
+	public void UpdateSettings(string changedSetting) {
+		SerializedOption<bool> option = requiredSetting.Value;
+		if (changedSetting == "all" || changedSetting == option.Name) {
+			colorPicker.Interactable = option.Value == SettingsManager.GetBool(option.Name, false);
+		}
+	}
+
+
+	private void OnEnable() {
 #if UNITY_WEBGL
         if(hideInWebGL)
         {
@@ -36,28 +31,24 @@ public class SettingsColorPicker : MonoBehaviour
         }
 #endif
 
-        if(!colorPicker)
-        {
-            colorPicker = GetComponent<ColorPicker>();
-        }
+		if (!colorPicker) {
+			colorPicker = GetComponent<ColorPicker>();
+		}
 
-        colorPicker.Value = SettingsManager.GetColor(rule, false);
-        colorPicker.OnValueChanged.AddListener(SetValue);
+		colorPicker.Value = SettingsManager.GetColor(rule, false);
+		colorPicker.OnValueChanged.AddListener(SetValue);
 
-        if(requiredSetting.Enabled)
-        {
-            SettingsManager.OnSettingsUpdated += UpdateSettings;
-            UpdateSettings("all");
-        }
-    }
+		if (requiredSetting.Enabled) {
+			SettingsManager.OnSettingsUpdated += UpdateSettings;
+			UpdateSettings("all");
+		}
+	}
 
 
-    private void OnDisable()
-    {
-        if(colorPicker)
-        {
-            colorPicker.OnValueChanged.RemoveAllListeners();
-        }
-        SettingsManager.OnSettingsUpdated -= UpdateSettings;
-    }
+	private void OnDisable() {
+		if (colorPicker) {
+			colorPicker.OnValueChanged.RemoveAllListeners();
+		}
+		SettingsManager.OnSettingsUpdated -= UpdateSettings;
+	}
 }

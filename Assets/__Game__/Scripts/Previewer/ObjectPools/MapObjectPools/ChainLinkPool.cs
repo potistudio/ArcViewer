@@ -1,1 +1,2 @@
-public class ChainLinkPool : ObjectPool<ChainLinkHandler> { }
+public class ChainLinkPool : ObjectPool<ChainLinkHandler> {
+}

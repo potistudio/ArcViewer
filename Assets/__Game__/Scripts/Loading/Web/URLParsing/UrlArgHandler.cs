@@ -5,408 +5,353 @@ using System.Linq;
 using System.Runtime.InteropServices;
 using UnityEngine;
 
-public class UrlArgHandler : MonoBehaviour
-{
-    public const string ArcViewerName = "ArcViewer";
-    public const string ArcViewerURL = "https://allpoland.github.io/ArcViewer/";
-    public const string OldBeatLeaderViewerURL = "https://replay.beatleader.xyz/";
-    public const string BeatLeaderViewerURL = "https://replay.beatleader.com/";
+public class UrlArgHandler : MonoBehaviour {
+	public const string ArcViewerName = "ArcViewer";
+	public const string ArcViewerURL = "https://allpoland.github.io/ArcViewer/";
+	public const string OldBeatLeaderViewerURL = "https://replay.beatleader.xyz/";
+	public const string BeatLeaderViewerURL = "https://replay.beatleader.com/";
 
-    [DllImport("__Internal")]
-    public static extern string GetParameters();
+	[DllImport("__Internal")]
+	public static extern string GetParameters();
 
-    [DllImport("__Internal")]
-    public static extern void SetPageTitle(string title);
+	[DllImport("__Internal")]
+	public static extern void SetPageTitle(string title);
 
-    private static string _loadedMapID;
-    public static string LoadedMapID
-    {
-        get => _loadedMapID;
+	private static string _loadedMapID;
+	public static string LoadedMapID {
+		get => _loadedMapID;
 
-        set
-        {
-            _loadedMapID = value;
-            _loadedMapURL = null;
-        }
-    }
+		set {
+			_loadedMapID = value;
+			_loadedMapURL = null;
+		}
+	}
 
-    private static string _loadedMapURL;
-    public static string LoadedMapURL
-    {
-        get => _loadedMapURL;
+	private static string _loadedMapURL;
+	public static string LoadedMapURL {
+		get => _loadedMapURL;
 
-        set
-        {
-            _loadedMapURL = value;
-            _loadedMapID = null;
-        }
-    }
+		set {
+			_loadedMapURL = value;
+			_loadedMapID = null;
+		}
+	}
 
-    private static string _loadedReplayID;
-    public static string LoadedReplayID
-    {
-        get => _loadedReplayID;
+	private static string _loadedReplayID;
+	public static string LoadedReplayID {
+		get => _loadedReplayID;
 
-        set
-        {
-            _loadedReplayID = value;
-            _loadedReplayURL = null;
-        }
-    }
+		set {
+			_loadedReplayID = value;
+			_loadedReplayURL = null;
+		}
+	}
 
-    private static string _loadedReplayURL;
-    public static string LoadedReplayURL
-    {
-        get => _loadedReplayURL;
+	private static string _loadedReplayURL;
+	public static string LoadedReplayURL {
+		get => _loadedReplayURL;
 
-        set
-        {
-            _loadedReplayURL = value;
-            _loadedReplayID = null;
-        }
-    }
+		set {
+			_loadedReplayURL = value;
+			_loadedReplayID = null;
+		}
+	}
 
-    public static DifficultyCharacteristic? LoadedCharacteristic;
-    public static DifficultyRank? LoadedDiffRank;
-    public static bool ignoreMapForSharing;
+	public static DifficultyCharacteristic? LoadedCharacteristic;
+	public static DifficultyRank? LoadedDiffRank;
+	public static bool ignoreMapForSharing;
 
-    private static string mapID;
-    private static string mapURL;
+	private static string mapID;
+	private static string mapURL;
 #if !UNITY_WEBGL || UNITY_EDITOR
-    private static string mapPath;
+	private static string mapPath;
 #endif
-    private static string replayID;
-    private static string replayURL;
-    private static float startTime;
-    private static DifficultyCharacteristic? mode;
-    private static DifficultyRank? diffRank;
-    private static bool noProxy;
+	private static string replayID;
+	private static string replayURL;
+	private static float startTime;
+	private static DifficultyCharacteristic? mode;
+	private static DifficultyRank? diffRank;
+	private static bool noProxy;
 
-    private static bool uiOff;
-    private static bool autoPlay;
-    private static bool loop;
+	private static bool uiOff;
+	private static bool autoPlay;
+	private static bool loop;
 
-    private static string settingsOverride;
+	private static string settingsOverride;
 
-    [SerializeField] private MapLoader mapLoader;
+	[SerializeField] private MapLoader mapLoader;
 
 
-    private void ParseParameter(string name, string value)
-    {
-        if(string.IsNullOrEmpty(name) || string.IsNullOrEmpty(value))
-        {
-            return;
-        }
+	private void ParseParameter(string name, string value) {
+		if (string.IsNullOrEmpty(name) || string.IsNullOrEmpty(value)) {
+			return;
+		}
 
-        switch(name)
-        {
-            case "id":
-                mapID = value;
-                break;
-            case "url":
-                mapURL = value;
-                break;
-            case "scoreID":
-                replayID = value;
-                break;
-            case "replayURL":
-                replayURL = value;
-                break;
-            case "t":
-                if(!float.TryParse(value, out startTime)) startTime = 0;
-                break;
-            case "mode":
-                DifficultyCharacteristic parsedMode;
-                mode = Enum.TryParse(value, true, out parsedMode) ? parsedMode : null;
-                break;
-            case "difficulty":
-                DifficultyRank parsedRank;
-                diffRank = Enum.TryParse(value, true, out parsedRank) ? parsedRank : null;
-                break;
+		switch (name) {
+			case "id":
+				mapID = value;
+				break;
+			case "url":
+				mapURL = value;
+				break;
+			case "scoreID":
+				replayID = value;
+				break;
+			case "replayURL":
+				replayURL = value;
+				break;
+			case "t":
+				if (!float.TryParse(value, out startTime)) startTime = 0;
+				break;
+			case "mode":
+				DifficultyCharacteristic parsedMode;
+				mode = Enum.TryParse(value, true, out parsedMode) ? parsedMode : null;
+				break;
+			case "difficulty":
+				DifficultyRank parsedRank;
+				diffRank = Enum.TryParse(value, true, out parsedRank) ? parsedRank : null;
+				break;
 #if UNITY_WEBGL && !UNITY_EDITOR
             case "noProxy":
                 noProxy = bool.TryParse(value, out noProxy) ? noProxy : false;
                 break;
 #else
-            case "path":
-                mapPath = value;
-                break;
+			case "path":
+				mapPath = value;
+				break;
 #endif
-            case "uiOff":
-                uiOff = bool.TryParse(value, out uiOff) ? uiOff : false;
-                break;
-            case "autoPlay":
-                autoPlay = bool.TryParse(value, out autoPlay) ? autoPlay : false;
-                break;
-            case "loop":
-                loop = bool.TryParse(value, out loop) ? loop : false;
-                break;
+			case "uiOff":
+				uiOff = bool.TryParse(value, out uiOff) ? uiOff : false;
+				break;
+			case "autoPlay":
+				autoPlay = bool.TryParse(value, out autoPlay) ? autoPlay : false;
+				break;
+			case "loop":
+				loop = bool.TryParse(value, out loop) ? loop : false;
+				break;
 
-            case "settingsOverride":
-                settingsOverride = value;
-                break;
-        }
-    }
+			case "settingsOverride":
+				settingsOverride = value;
+				break;
+		}
+	}
 
 
-    private void ApplyArguments()
-    {
-        bool setTime = false;
-        bool setDiff = false;
+	private void ApplyArguments() {
+		bool setTime = false;
+		bool setDiff = false;
 
-        if(!string.IsNullOrEmpty(mapURL) && !string.IsNullOrEmpty(mapID))
-        {
-            mapURL = null;
-        }
+		if (!string.IsNullOrEmpty(mapURL) && !string.IsNullOrEmpty(mapID)) {
+			mapURL = null;
+		}
 
-        if(!string.IsNullOrEmpty(replayURL) && !string.IsNullOrEmpty(replayID))
-        {
-            replayURL = null;
-        }
+		if (!string.IsNullOrEmpty(replayURL) && !string.IsNullOrEmpty(replayID)) {
+			replayURL = null;
+		}
 
-        if(!string.IsNullOrEmpty(replayID))
-        {
-            StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, mapURL, mapID, noProxy));
-            LoadedReplayID = replayID;
+		if (!string.IsNullOrEmpty(replayID)) {
+			StartCoroutine(mapLoader.LoadReplayIDCoroutine(replayID, mapURL, mapID, noProxy));
+			LoadedReplayID = replayID;
 
-            //Don't set the diff cause that depends on the replay
-            setTime = true;
-        }
-        else if(!string.IsNullOrEmpty(replayURL))
-        {
-            StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, null, mapURL, mapID, noProxy));
-            LoadedReplayURL = replayURL;
+			//Don't set the diff cause that depends on the replay
+			setTime = true;
+		} else if (!string.IsNullOrEmpty(replayURL)) {
+			StartCoroutine(mapLoader.LoadReplayURLCoroutine(replayURL, null, mapURL, mapID, noProxy));
+			LoadedReplayURL = replayURL;
 
-            setTime = true;
-        }
-        else if(!string.IsNullOrEmpty(mapID))
-        {
-            StartCoroutine(mapLoader.LoadMapIDCoroutine(mapID));
-            LoadedMapID = mapID;
+			setTime = true;
+		} else if (!string.IsNullOrEmpty(mapID)) {
+			StartCoroutine(mapLoader.LoadMapIDCoroutine(mapID));
+			LoadedMapID = mapID;
 
-            setTime = true;
-            setDiff = true;
-        }
-        else if(!string.IsNullOrEmpty(mapURL))
-        {
-            StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
-            LoadedMapURL = mapURL;
+			setTime = true;
+			setDiff = true;
+		} else if (!string.IsNullOrEmpty(mapURL)) {
+			StartCoroutine(mapLoader.LoadMapZipURLCoroutine(mapURL, null, null, noProxy));
+			LoadedMapURL = mapURL;
 
-            setTime = true;
-            setDiff = true;
-        }
+			setTime = true;
+			setDiff = true;
+		}
 #if !UNITY_WEBGL || UNITY_EDITOR
-        else if(!string.IsNullOrEmpty(mapPath))
-        {
-            mapLoader.LoadMapDirectory(mapPath);
-            setTime = true;
-            setDiff = true;
-        }
+		  else if (!string.IsNullOrEmpty(mapPath)) {
+			mapLoader.LoadMapDirectory(mapPath);
+			setTime = true;
+			setDiff = true;
+		}
 #endif
 
-        if(uiOff)
-        {
-            UIHideInput.SetUIVisible(false);
-        }
+		if (uiOff) {
+			UIHideInput.SetUIVisible(false);
+		}
 
-        if(loop)
-        {
-            TimeManager.Loop = true;
-        }
+		if (loop) {
+			TimeManager.Loop = true;
+		}
 
-        if(autoPlay)
-        {
-            BeatmapManager.OnBeatmapDifficultyChanged += StartPlaying;
-        }
+		if (autoPlay) {
+			BeatmapManager.OnBeatmapDifficultyChanged += StartPlaying;
+		}
 
-        //Only apply start time and diff when a map is also included in the arguments
-        if(setTime && startTime > 0)
-        {
-            MapLoader.OnMapLoaded += SetTime;
-        }
+		//Only apply start time and diff when a map is also included in the arguments
+		if (setTime && startTime > 0) {
+			MapLoader.OnMapLoaded += SetTime;
+		}
 
-        if(setDiff && (mode != null || diffRank != null))
-        {
-            MapLoader.OnMapLoaded += SetDifficulty;
-        }
+		if (setDiff && (mode != null || diffRank != null)) {
+			MapLoader.OnMapLoaded += SetDifficulty;
+		}
 
-        if(!string.IsNullOrEmpty(settingsOverride))
-        {
-            try
-            {
-                //Parse the overrides and send them to SettingsManager
-                Settings newOverrides = JsonReader.DeserializeObject<Settings>(settingsOverride);
-                SettingsManager.Overrides = newOverrides;
-            }
-            catch(Exception err)
-            {
-                Debug.LogWarning($"Failed to parse settings override with error: {err.Message}, {err.StackTrace}");
-                SettingsManager.Overrides = null;
-            }
-        }
-    }
+		if (!string.IsNullOrEmpty(settingsOverride)) {
+			try {
+				//Parse the overrides and send them to SettingsManager
+				Settings newOverrides = JsonReader.DeserializeObject<Settings>(settingsOverride);
+				SettingsManager.Overrides = newOverrides;
+			} catch (Exception err) {
+				Debug.LogWarning($"Failed to parse settings override with error: {err.Message}, {err.StackTrace}");
+				SettingsManager.Overrides = null;
+			}
+		}
+	}
 
 
-    public void LoadMapFromShareableURL(string url)
-    {
-        if(MapLoader.Loading)
-        {
-            Debug.LogWarning("Tried to load from url parameters while already loading!");
-            return;
-        }
+	public void LoadMapFromShareableURL(string url) {
+		if (MapLoader.Loading) {
+			Debug.LogWarning("Tried to load from url parameters while already loading!");
+			return;
+		}
 
-        if(string.IsNullOrEmpty(url))
-        {
-            Debug.LogWarning("Shareable link is null or empty!");
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Empty shareable link!");
-            return;
-        }
+		if (string.IsNullOrEmpty(url)) {
+			Debug.LogWarning("Shareable link is null or empty!");
+			ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Empty shareable link!");
+			return;
+		}
 
-        ResetArguments();
+		ResetArguments();
 
-        List<KeyValuePair<string, string>> parameters = UrlUtility.ParseUrlParams(url);
-        if(parameters.Count == 0)
-        {
-            Debug.LogWarning($"Invalid sharing URL: {url}");
-            ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid sharing URL!");
-        }
+		List<KeyValuePair<string, string>> parameters = UrlUtility.ParseUrlParams(url);
+		if (parameters.Count == 0) {
+			Debug.LogWarning($"Invalid sharing URL: {url}");
+			ErrorHandler.Instance.ShowPopup(ErrorType.Error, "Invalid sharing URL!");
+		}
 
-        foreach(KeyValuePair<string, string> parameter in parameters)
-        {
-            ParseParameter(parameter.Key, parameter.Value);
-        }
+		foreach (KeyValuePair<string, string> parameter in parameters) {
+			ParseParameter(parameter.Key, parameter.Value);
+		}
 
-        ApplyArguments();
-    }
+		ApplyArguments();
+	}
 
 
-    private void LoadMapFromCommandLineParameters(string[] parameters)
-    {
-        if(MapLoader.Loading)
-        {
-            Debug.LogWarning("Tried to load from command line args while already loading!");
-            return;
-        }
+	private void LoadMapFromCommandLineParameters(string[] parameters) {
+		if (MapLoader.Loading) {
+			Debug.LogWarning("Tried to load from command line args while already loading!");
+			return;
+		}
 
-        ResetArguments();
+		ResetArguments();
 
-        if(parameters.Length <= 1)
-        {
-            //The first parameter is always the app name, so it shouldn't be counted
-            return;
-        }
+		if (parameters.Length <= 1) {
+			//The first parameter is always the app name, so it shouldn't be counted
+			return;
+		}
 
-        for(int i = 1; i < parameters.Length; i++)
-        {
-            string[] args = parameters[i].Split('=');
-            if(args.Length != 2)
-            {
-                //A parameter should always have a single `=`, leading to two args
-                continue;
-            }
+		for (int i = 1; i < parameters.Length; i++) {
+			string[] args = parameters[i].Split('=');
+			if (args.Length != 2) {
+				//A parameter should always have a single `=`, leading to two args
+				continue;
+			}
 
-            ParseParameter(args[0], args[1]);
-        }
+			ParseParameter(args[0], args[1]);
+		}
 
-        ApplyArguments();
-    }
+		ApplyArguments();
+	}
 
 
-    private void StartPlaying(Difficulty difficulty)
-    {
-        TimeManager.SetPlaying(true);
-        BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
-    }
+	private void StartPlaying(Difficulty difficulty) {
+		TimeManager.SetPlaying(true);
+		BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
+	}
 
 
-    private void SetTime()
-    {
-        TimeManager.CurrentTime = startTime;
-        MapLoader.OnMapLoaded -= SetTime;
-    }
+	private void SetTime() {
+		TimeManager.CurrentTime = startTime;
+		MapLoader.OnMapLoaded -= SetTime;
+	}
 
 
-    public void SetDifficulty()
-    {
-        if(mode != null)
-        {
-            //Since mode is nullable I have to cast it (cringe)
-            DifficultyCharacteristic characteristic = (DifficultyCharacteristic)mode;
+	public void SetDifficulty() {
+		if (mode != null) {
+			//Since mode is nullable I have to cast it (cringe)
+			DifficultyCharacteristic characteristic = (DifficultyCharacteristic)mode;
 
-            List<Difficulty> difficulties = BeatmapManager.GetDifficultiesByCharacteristic(characteristic);
-            Difficulty difficulty = null;
+			List<Difficulty> difficulties = BeatmapManager.GetDifficultiesByCharacteristic(characteristic);
+			Difficulty difficulty = null;
 
-            if(diffRank != null)
-            {
-                difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == diffRank);
-            }
-            BeatmapManager.CurrentDifficulty = difficulty ?? difficulties.Last();
-        }
-        else if(diffRank != null)
-        {
-            DifficultyCharacteristic defaultCharacteristic = BeatmapManager.GetDefaultDifficulty().characteristic;
-            List<Difficulty> difficulties = BeatmapManager.GetDifficultiesByCharacteristic(defaultCharacteristic);
+			if (diffRank != null) {
+				difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == diffRank);
+			}
+			BeatmapManager.CurrentDifficulty = difficulty ?? difficulties.Last();
+		} else if (diffRank != null) {
+			DifficultyCharacteristic defaultCharacteristic = BeatmapManager.GetDefaultDifficulty().characteristic;
+			List<Difficulty> difficulties = BeatmapManager.GetDifficultiesByCharacteristic(defaultCharacteristic);
 
-            Difficulty difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == diffRank);
-            BeatmapManager.CurrentDifficulty = difficulty ?? difficulties.Last();
-        }
-        MapLoader.OnMapLoaded -= SetDifficulty;
-    }
+			Difficulty difficulty = difficulties.FirstOrDefault(x => x.difficultyRank == diffRank);
+			BeatmapManager.CurrentDifficulty = difficulty ?? difficulties.Last();
+		}
+		MapLoader.OnMapLoaded -= SetDifficulty;
+	}
 
 
-    public void ResetArguments()
-    {
-        mapID = "";
-        mapURL = "";
+	public void ResetArguments() {
+		mapID = "";
+		mapURL = "";
 #if !UNITY_WEBGL || UNITY_EDITOR
-        mapPath = "";
+		mapPath = "";
 #endif
-        startTime = 0;
-        mode = null;
-        diffRank = null;
-        noProxy = false;
-        replayURL = "";
-        replayID = "";
+		startTime = 0;
+		mode = null;
+		diffRank = null;
+		noProxy = false;
+		replayURL = "";
+		replayID = "";
 
-        uiOff = false;
-        autoPlay = false;
-        loop = false;
+		uiOff = false;
+		autoPlay = false;
+		loop = false;
 
-        settingsOverride = null;
-    }
-
-
-    public void ClearSubscriptions()
-    {
-        BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
-        MapLoader.OnMapLoaded -= SetTime;
-        MapLoader.OnMapLoaded -= SetDifficulty;
-    }
+		settingsOverride = null;
+	}
 
 
-    public void UpdateLoadedDifficulty(Difficulty newDifficulty)
-    {
-        Difficulty defaultDifficulty = BeatmapManager.GetDefaultDifficulty();
-        if(newDifficulty == defaultDifficulty)
-        {
-            //No need to specify for the default difficulty
-            LoadedCharacteristic = null;
-            LoadedDiffRank = null;
-            return;
-        }
-
-        LoadedCharacteristic = newDifficulty.characteristic;
-        LoadedDiffRank = newDifficulty.difficultyRank;
-    }
+	public void ClearSubscriptions() {
+		BeatmapManager.OnBeatmapDifficultyChanged -= StartPlaying;
+		MapLoader.OnMapLoaded -= SetTime;
+		MapLoader.OnMapLoaded -= SetDifficulty;
+	}
 
 
-    public void UpdateUIState(UIState newState)
-    {
-        if(newState == UIState.MapSelection)
-        {
-            ClearSubscriptions();
-        }
-    }
+	public void UpdateLoadedDifficulty(Difficulty newDifficulty) {
+		Difficulty defaultDifficulty = BeatmapManager.GetDefaultDifficulty();
+		if (newDifficulty == defaultDifficulty) {
+			//No need to specify for the default difficulty
+			LoadedCharacteristic = null;
+			LoadedDiffRank = null;
+			return;
+		}
+
+		LoadedCharacteristic = newDifficulty.characteristic;
+		LoadedDiffRank = newDifficulty.difficultyRank;
+	}
+
+
+	public void UpdateUIState(UIState newState) {
+		if (newState == UIState.MapSelection) {
+			ClearSubscriptions();
+		}
+	}
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -442,8 +387,7 @@ public class UrlArgHandler : MonoBehaviour
 #endif
 
 
-    private void Start()
-    {
+	private void Start() {
 #if UNITY_WEBGL && !UNITY_EDITOR
         string parameters = GetParameters();
 
@@ -454,17 +398,14 @@ public class UrlArgHandler : MonoBehaviour
 
         BeatmapManager.OnBeatmapInfoChanged += UpdateMapTitle;
 #else
-        try
-        {
-            LoadMapFromCommandLineParameters(Environment.GetCommandLineArgs());
-        }
-        catch(NotSupportedException)
-        {
-            Debug.LogWarning("The system doesn't support command-line arguments!");
-        }
+		try {
+			LoadMapFromCommandLineParameters(Environment.GetCommandLineArgs());
+		} catch (NotSupportedException) {
+			Debug.LogWarning("The system doesn't support command-line arguments!");
+		}
 #endif
-        UIStateManager.OnUIStateChanged += UpdateUIState;
-        MapLoader.OnLoadingFailed += ClearSubscriptions;
-        BeatmapManager.OnBeatmapDifficultyChanged += UpdateLoadedDifficulty;
-    }
+		UIStateManager.OnUIStateChanged += UpdateUIState;
+		MapLoader.OnLoadingFailed += ClearSubscriptions;
+		BeatmapManager.OnBeatmapDifficultyChanged += UpdateLoadedDifficulty;
+	}
 }

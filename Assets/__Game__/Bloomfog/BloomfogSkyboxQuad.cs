@@ -1,10 +1,8 @@
 using UnityEngine;
 
 [RequireComponent(typeof(MeshFilter)), ExecuteInEditMode]
-public class BloomfogSkyboxQuad : MonoBehaviour
-{
-	private void Awake()
-	{
+public class BloomfogSkyboxQuad : MonoBehaviour {
+	private void Awake() {
 		Vector3[] vertices = new Vector3[4]
 		{
 			new Vector3(-1f, -1f, 0f),

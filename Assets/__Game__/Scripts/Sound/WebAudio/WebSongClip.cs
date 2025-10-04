@@ -1,35 +1,32 @@
 using System;
 
-public class WebSongClip : IDisposable
-{
-    public bool IsPlaying => isPlaying;
+public class WebSongClip : IDisposable {
+	public bool IsPlaying => isPlaying;
 
-    public float Length => WebSongController.GetSongLength();
+	public float Length => WebSongController.GetSongLength();
 
-    private bool isPlaying = false;
+	private bool isPlaying = false;
 
-    public float Time => WebSongController.GetSongTime();
+	public float Time => WebSongController.GetSongTime();
 
-    public WebSongClip()
-    {
+	public WebSongClip() {
 #if !UNITY_WEBGL || UNITY_EDITOR
-        throw new InvalidOperationException("WebSongClip should only be used in WEBGL!");
+		throw new InvalidOperationException("WebSongClip should only be used in WEBGL!");
 #else
 
         // Make sure the audio controller was created
         WebSongController.Init();
 #endif
-    }
+	}
 
 
-    public void Dispose()
-    {
+	public void Dispose() {
 #if UNITY_WEBGL && !UNITY_EDITOR
         Stop();
 #endif
-        WebSongController.StopSong();
-        WebSongController.DisposeSongClip();
-    }
+		WebSongController.StopSong();
+		WebSongController.DisposeSongClip();
+	}
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR

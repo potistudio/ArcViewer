@@ -1,1 +1,2 @@
-public class ArcPool : ObjectPool<ArcHandler> { }
+public class ArcPool : ObjectPool<ArcHandler> {
+}

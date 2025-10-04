@@ -4,9 +4,8 @@ using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using SFB;
 
-public class ExplorerManager : MonoBehaviour, IPointerDownHandler
-{
-    [SerializeField] private MapLoader mapLoader;
+public class ExplorerManager : MonoBehaviour, IPointerDownHandler {
+	[SerializeField] private MapLoader mapLoader;
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -28,8 +27,7 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
 #endif
 
 
-    public void OnPointerDown(PointerEventData eventData)
-    {
+	public void OnPointerDown(PointerEventData eventData) {
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
         {
@@ -40,42 +38,35 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
             UploadFile(gameObject.name, "OnFileUploaded", ".zip", false);
         }
 #endif
-    }
+	}
 
 
-    public void OpenFileExplorer()
-    {
-        ExtensionFilter[] extensions;
-        if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
-        {
-            extensions = new []
-            {
-                new ExtensionFilter("Replay Files", new string[] {"bsor"})
-            };
-        }
-        else
-        {
-            extensions = new []
-            {
-                new ExtensionFilter("Map Files", new string[] {"zip", "dat"})
-            };
-        }
+	public void OpenFileExplorer() {
+		ExtensionFilter[] extensions;
+		if (!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode")) {
+			extensions = new[]
+			{
+				new ExtensionFilter("Replay Files", new string[] {"bsor"})
+			};
+		} else {
+			extensions = new[]
+			{
+				new ExtensionFilter("Map Files", new string[] {"zip", "dat"})
+			};
+		}
 
-        string[] paths = StandaloneFileBrowser.OpenFilePanel("Select Map", "", extensions, false);
-        
-        if(paths.Length > 0)
-        {
-            mapLoader.LoadMapInput(paths[0]);
-        }
-        else Debug.Log("No path selected!");
-    }
+		string[] paths = StandaloneFileBrowser.OpenFilePanel("Select Map", "", extensions, false);
+
+		if (paths.Length > 0) {
+			mapLoader.LoadMapInput(paths[0]);
+		} else Debug.Log("No path selected!");
+	}
 
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-    private void Start()
-    {
-        //Subscribe to the onClick event if this isn't WebGL
-        GetComponent<Button>().onClick.AddListener(OpenFileExplorer);
-    }
+	private void Start() {
+		//Subscribe to the onClick event if this isn't WebGL
+		GetComponent<Button>().onClick.AddListener(OpenFileExplorer);
+	}
 #endif
 }

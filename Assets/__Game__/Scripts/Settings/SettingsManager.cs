@@ -6,159 +6,143 @@ using System.Threading.Tasks;
 using Newtonsoft.Json;
 using UnityEngine;
 
-public class SettingsManager : MonoBehaviour
-{
-    private static Settings _currentSettings;
-    public static Settings CurrentSettings
-    {
-        get => _currentSettings;
+public class SettingsManager : MonoBehaviour {
+	private static Settings _currentSettings;
+	public static Settings CurrentSettings {
+		get => _currentSettings;
 
-        set
-        {
-            _currentSettings = value;
+		set {
+			_currentSettings = value;
 
-            // Using the Loaded parameter avoids potentially expensive null checking
-            // every single time a setting is read
-            Loaded = _currentSettings != null;
-        }
-    }
+			// Using the Loaded parameter avoids potentially expensive null checking
+			// every single time a setting is read
+			Loaded = _currentSettings != null;
+		}
+	}
 
-    private static Settings _overrides;
-    public static Settings Overrides
-    {
-        get => _overrides;
+	private static Settings _overrides;
+	public static Settings Overrides {
+		get => _overrides;
 
-        set
-        {
-            _overrides = value;
-            CheckShouldUseOverrides();
-        }
-    }
+		set {
+			_overrides = value;
+			CheckShouldUseOverrides();
+		}
+	}
 
-    public static event Action<string> OnSettingsUpdated;
-    public static event Action OnSettingsReset;
+	public static event Action<string> OnSettingsUpdated;
+	public static event Action OnSettingsReset;
 
-    public static bool Loaded { get; private set; }
-    public static bool UseOverrides { get; private set; }
+	public static bool Loaded {
+		get; private set;
+	}
+	public static bool UseOverrides {
+		get; private set;
+	}
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-    private const string settingsFile = "UserSettings.json";
+	private const string settingsFile = "UserSettings.json";
 
-    private const float autoSaveLength = 0.25f;
-    private static float dirtyTime = 0f;
+	private const float autoSaveLength = 0.25f;
+	private static float dirtyTime = 0f;
 #endif
 
-    [SerializeField] private List<SerializedOption<bool>> defaultBools;
-    [SerializeField] private List<SerializedOption<int>> defaultInts;
-    [SerializeField] private List<SerializedOption<float>> defaultFloats;
-    [SerializeField] private List<SerializedOption<Color>> defaultColors;
+	[SerializeField] private List<SerializedOption<bool>> defaultBools;
+	[SerializeField] private List<SerializedOption<int>> defaultInts;
+	[SerializeField] private List<SerializedOption<float>> defaultFloats;
+	[SerializeField] private List<SerializedOption<Color>> defaultColors;
 
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-    private bool saving;
+	private bool saving;
 
 
-    private async Task WriteFileAsync(string text, string path)
-    {
-        await File.WriteAllTextAsync(path, text);
-    }
+	private async Task WriteFileAsync(string text, string path) {
+		await File.WriteAllTextAsync(path, text);
+	}
 
 
-    private IEnumerator SaveSettingsCoroutine()
-    {
-        saving = true;
+	private IEnumerator SaveSettingsCoroutine() {
+		saving = true;
 
-        string filePath = Path.Combine(Application.persistentDataPath, settingsFile);
-        //Need to use newtonsoft otherwise dictionaries don't serialize
-        string json = JsonConvert.SerializeObject(CurrentSettings);
+		string filePath = Path.Combine(Application.persistentDataPath, settingsFile);
+		//Need to use newtonsoft otherwise dictionaries don't serialize
+		string json = JsonConvert.SerializeObject(CurrentSettings);
 
-        Task writeTask = WriteFileAsync(json, filePath);
-        yield return new WaitUntil(() => writeTask.IsCompleted);
+		Task writeTask = WriteFileAsync(json, filePath);
+		yield return new WaitUntil(() => writeTask.IsCompleted);
 
-        if(writeTask.Exception != null)
-        {
-            Debug.Log($"Failed to save settings with error: {writeTask.Exception.Message}, {writeTask.Exception.StackTrace}");
-            ErrorHandler.Instance?.ShowPopup(ErrorType.Error, "Failed to save your settings!");
-        }
+		if (writeTask.Exception != null) {
+			Debug.Log($"Failed to save settings with error: {writeTask.Exception.Message}, {writeTask.Exception.StackTrace}");
+			ErrorHandler.Instance?.ShowPopup(ErrorType.Error, "Failed to save your settings!");
+		}
 
-        saving = false;
-    }
+		saving = false;
+	}
 
 
-    public void SaveSettings()
-    {
-        if(saving)
-        {
-            Debug.LogWarning("Trying to save settings when already saving!");
-            return;
-        }
+	public void SaveSettings() {
+		if (saving) {
+			Debug.LogWarning("Trying to save settings when already saving!");
+			return;
+		}
 
-        StartCoroutine(SaveSettingsCoroutine());
-    }
+		StartCoroutine(SaveSettingsCoroutine());
+	}
 
 
-    private void LoadSettings()
-    {
-        string filePath = Path.Combine(Application.persistentDataPath, settingsFile);
-        
-        if(!File.Exists(filePath))
-        {
-            Debug.Log("Settings file doesn't exist. Using defaults.");
-            CurrentSettings = Settings.GetDefaultSettings();
-            SaveSettings();
+	private void LoadSettings() {
+		string filePath = Path.Combine(Application.persistentDataPath, settingsFile);
 
-            OnSettingsUpdated?.Invoke("all");
-            return;
-        }
+		if (!File.Exists(filePath)) {
+			Debug.Log("Settings file doesn't exist. Using defaults.");
+			CurrentSettings = Settings.GetDefaultSettings();
+			SaveSettings();
 
-        try
-        {
-            string json = File.ReadAllText(filePath);
-            CurrentSettings = JsonConvert.DeserializeObject<Settings>(json);
-        }
-        catch(Exception err)
-        {
-            Debug.LogWarning($"Failed to load settings with error: {err.Message}, {err.StackTrace}");
-            CurrentSettings = Settings.GetDefaultSettings();
+			OnSettingsUpdated?.Invoke("all");
+			return;
+		}
 
-            //It *should* be impossible for this to happen on first startup, since the file wouldn't exist
-            //So the user will have already seen the static lights warning
-            SetRule("staticlightswarningacknowledged", true, false);
-            SaveSettings();
-        }
+		try {
+			string json = File.ReadAllText(filePath);
+			CurrentSettings = JsonConvert.DeserializeObject<Settings>(json);
+		} catch (Exception err) {
+			Debug.LogWarning($"Failed to load settings with error: {err.Message}, {err.StackTrace}");
+			CurrentSettings = Settings.GetDefaultSettings();
 
-        OnSettingsUpdated?.Invoke("all");
-    }
+			//It *should* be impossible for this to happen on first startup, since the file wouldn't exist
+			//So the user will have already seen the static lights warning
+			SetRule("staticlightswarningacknowledged", true, false);
+			SaveSettings();
+		}
+
+		OnSettingsUpdated?.Invoke("all");
+	}
 
 
-    private static void SetDirty()
-    {
-        dirtyTime = autoSaveLength;
-    }
+	private static void SetDirty() {
+		dirtyTime = autoSaveLength;
+	}
 #endif
 
 
-    public static void CheckShouldUseOverrides()
-    {
-        bool hadOverrides = UseOverrides;
-        UseOverrides = Overrides != null && GetBool("allowoverride", false);
+	public static void CheckShouldUseOverrides() {
+		bool hadOverrides = UseOverrides;
+		UseOverrides = Overrides != null && GetBool("allowoverride", false);
 
-        if(UseOverrides != hadOverrides)
-        {
-            //Overrides have been enabled/disabled, update settings
-            OnSettingsUpdated?.Invoke("all");
-        }
-    }
+		if (UseOverrides != hadOverrides) {
+			//Overrides have been enabled/disabled, update settings
+			OnSettingsUpdated?.Invoke("all");
+		}
+	}
 
 
-    public static bool GetBool(string name, bool useOverride = true)
-    {
-        bool value;
+	public static bool GetBool(string name, bool useOverride = true) {
+		bool value;
 
-        if(useOverride && UseOverrides && Overrides.Bools.TryGetValue(name, out value))
-        {
-            return value;
-        }
+		if (useOverride && UseOverrides && Overrides.Bools.TryGetValue(name, out value)) {
+			return value;
+		}
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(CurrentSettings.Bools.TryGetValue(name, out value))
@@ -182,33 +166,26 @@ public class SettingsManager : MonoBehaviour
 
         return value;
 #else
-        if(!Loaded)
-        {
-            Debug.LogWarning($"Setting {name} was accessed before settings loaded!");
-            return false;
-        }
+		if (!Loaded) {
+			Debug.LogWarning($"Setting {name} was accessed before settings loaded!");
+			return false;
+		}
 
-        if(CurrentSettings.Bools.TryGetValue(name, out value))
-        {
-            return value;
-        }
-        else if(Settings.DefaultSettings.Bools.TryGetValue(name, out value))
-        {
-            return value;
-        }
-        else return false;
+		if (CurrentSettings.Bools.TryGetValue(name, out value)) {
+			return value;
+		} else if (Settings.DefaultSettings.Bools.TryGetValue(name, out value)) {
+			return value;
+		} else return false;
 #endif
-    }
+	}
 
 
-    public static int GetInt(string name, bool useOverride = true)
-    {
-        int value;
+	public static int GetInt(string name, bool useOverride = true) {
+		int value;
 
-        if(useOverride && UseOverrides && Overrides.Ints.TryGetValue(name, out value))
-        {
-            return value;
-        }
+		if (useOverride && UseOverrides && Overrides.Ints.TryGetValue(name, out value)) {
+			return value;
+		}
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(CurrentSettings.Ints.TryGetValue(name, out value))
@@ -232,33 +209,26 @@ public class SettingsManager : MonoBehaviour
 
         return value;
 #else
-        if(!Loaded)
-        {
-            Debug.LogWarning($"Setting {name} was accessed before settings loaded!");
-            return 0;
-        }
+		if (!Loaded) {
+			Debug.LogWarning($"Setting {name} was accessed before settings loaded!");
+			return 0;
+		}
 
-        if(CurrentSettings.Ints.TryGetValue(name, out value))
-        {
-            return value;
-        }
-        else if(Settings.DefaultSettings.Ints.TryGetValue(name, out value))
-        {
-            return value;
-        }
-        else return 0;
+		if (CurrentSettings.Ints.TryGetValue(name, out value)) {
+			return value;
+		} else if (Settings.DefaultSettings.Ints.TryGetValue(name, out value)) {
+			return value;
+		} else return 0;
 #endif
-    }
+	}
 
 
-    public static float GetFloat(string name, bool useOverride = true)
-    {
-        float value;
+	public static float GetFloat(string name, bool useOverride = true) {
+		float value;
 
-        if(useOverride && UseOverrides && Overrides.Floats.TryGetValue(name, out value))
-        {
-            return value;
-        }
+		if (useOverride && UseOverrides && Overrides.Floats.TryGetValue(name, out value)) {
+			return value;
+		}
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         if(CurrentSettings.Floats.TryGetValue(name, out value))
@@ -282,373 +252,314 @@ public class SettingsManager : MonoBehaviour
 
         return value;
 #else
-        if(!Loaded)
-        {
-            Debug.LogWarning($"Setting {name} was accessed before settings loaded!");
-            return 0;
-        }
+		if (!Loaded) {
+			Debug.LogWarning($"Setting {name} was accessed before settings loaded!");
+			return 0;
+		}
 
-        if(CurrentSettings.Floats.TryGetValue(name, out value))
-        {
-            return value;
-        }
-        else if(Settings.DefaultSettings.Floats.TryGetValue(name, out value))
-        {
-            return value;
-        }
-        else return 0f;
+		if (CurrentSettings.Floats.TryGetValue(name, out value)) {
+			return value;
+		} else if (Settings.DefaultSettings.Floats.TryGetValue(name, out value)) {
+			return value;
+		} else return 0f;
 #endif
-    }
+	}
 
 
-    public static Color GetColor(string name, bool useOverride = true)
-    {
-        float r = Mathf.Clamp01(GetFloat(name + ".r", useOverride));
-        float g = Mathf.Clamp01(GetFloat(name + ".g", useOverride));
-        float b = Mathf.Clamp01(GetFloat(name + ".b", useOverride));
-        return new Color(r, g, b);
-    }
+	public static Color GetColor(string name, bool useOverride = true) {
+		float r = Mathf.Clamp01(GetFloat(name + ".r", useOverride));
+		float g = Mathf.Clamp01(GetFloat(name + ".g", useOverride));
+		float b = Mathf.Clamp01(GetFloat(name + ".b", useOverride));
+		return new Color(r, g, b);
+	}
 
 
-    public static void SetRule(string name, bool value, bool notify = true)
-    {
-        Dictionary<string, bool> rules = CurrentSettings.Bools;
-        if(rules.ContainsKey(name))
-        {
-            rules[name] = value;
-        }
-        else
-        {
-            rules.Add(name, value);
-        }
+	public static void SetRule(string name, bool value, bool notify = true) {
+		Dictionary<string, bool> rules = CurrentSettings.Bools;
+		if (rules.ContainsKey(name)) {
+			rules[name] = value;
+		} else {
+			rules.Add(name, value);
+		}
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetInt(name, value ? 1 : 0);
 #else
-        SetDirty();
+		SetDirty();
 #endif
 
-        if(UseOverrides && Overrides.Bools.ContainsKey(name))
-        {
-            //Allow the user to veto the override by changing the setting
-            Overrides.Bools.Remove(name);
-        }
+		if (UseOverrides && Overrides.Bools.ContainsKey(name)) {
+			//Allow the user to veto the override by changing the setting
+			Overrides.Bools.Remove(name);
+		}
 
-        if(notify)
-        {
-            OnSettingsUpdated?.Invoke(name);
-        }
-    }
+		if (notify) {
+			OnSettingsUpdated?.Invoke(name);
+		}
+	}
 
 
-    public static void SetRule(string name, int value, bool notify = true)
-    {
-        Dictionary<string, int> rules = CurrentSettings.Ints;
-        if(rules.ContainsKey(name))
-        {
-            rules[name] = value;
-        }
-        else
-        {
-            rules.Add(name, value);
-        }
+	public static void SetRule(string name, int value, bool notify = true) {
+		Dictionary<string, int> rules = CurrentSettings.Ints;
+		if (rules.ContainsKey(name)) {
+			rules[name] = value;
+		} else {
+			rules.Add(name, value);
+		}
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetInt(name, value);
 #else
-        SetDirty();
+		SetDirty();
 #endif
 
-        if(UseOverrides && Overrides.Ints.ContainsKey(name))
-        {
-            //Allow the user to veto the override by changing the setting
-            Overrides.Ints.Remove(name);
-        }
+		if (UseOverrides && Overrides.Ints.ContainsKey(name)) {
+			//Allow the user to veto the override by changing the setting
+			Overrides.Ints.Remove(name);
+		}
 
-        if(notify)
-        {
-            OnSettingsUpdated?.Invoke(name);
-        }
-    }
+		if (notify) {
+			OnSettingsUpdated?.Invoke(name);
+		}
+	}
 
 
-    public static void SetRule(string name, float value, bool notify = true, bool round = true)
-    {
-        if(round)
-        {
-            value = (float)Math.Round(value, 3);
-        }
+	public static void SetRule(string name, float value, bool notify = true, bool round = true) {
+		if (round) {
+			value = (float)Math.Round(value, 3);
+		}
 
-        Dictionary<string, float> rules = CurrentSettings.Floats;
-        if(rules.ContainsKey(name))
-        {
-            rules[name] = value;
-        }
-        else
-        {
-            rules.Add(name, value);
-        }
+		Dictionary<string, float> rules = CurrentSettings.Floats;
+		if (rules.ContainsKey(name)) {
+			rules[name] = value;
+		} else {
+			rules.Add(name, value);
+		}
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.SetFloat(name, value);
 #else
-        SetDirty();
+		SetDirty();
 #endif
 
-        if(UseOverrides && Overrides.Floats.ContainsKey(name))
-        {
-            //Allow the user to veto the override by changing the setting
-            Overrides.Floats.Remove(name);
-        }
+		if (UseOverrides && Overrides.Floats.ContainsKey(name)) {
+			//Allow the user to veto the override by changing the setting
+			Overrides.Floats.Remove(name);
+		}
 
-        if(notify)
-        {
-            OnSettingsUpdated?.Invoke(name);
-        }
-    }
+		if (notify) {
+			OnSettingsUpdated?.Invoke(name);
+		}
+	}
 
 
-    public static void SetRule(string name, Color value, bool notify = true)
-    {
-        //Color values need to be set as separate floats
-        SetRule(name + ".r", value.r, false, false);
-        SetRule(name + ".g", value.g, false, false);
-        SetRule(name + ".b", value.b, false, false);
+	public static void SetRule(string name, Color value, bool notify = true) {
+		//Color values need to be set as separate floats
+		SetRule(name + ".r", value.r, false, false);
+		SetRule(name + ".g", value.g, false, false);
+		SetRule(name + ".b", value.b, false, false);
 
-        if(notify)
-        {
-            OnSettingsUpdated?.Invoke(name);
-        }
-    }
+		if (notify) {
+			OnSettingsUpdated?.Invoke(name);
+		}
+	}
 
 
-    public static void SetDefaults()
-    {
-        bool staticLightsWarningAcknowledged = GetBool("staticlightswarningacknowledged");
-        bool replayMode = GetBool("replaymode");
+	public static void SetDefaults() {
+		bool staticLightsWarningAcknowledged = GetBool("staticlightswarningacknowledged");
+		bool replayMode = GetBool("replaymode");
 
 #if UNITY_WEBGL && !UNITY_EDITOR
         PlayerPrefs.DeleteAll();
         CurrentSettings = new Settings();
 #else
-        CurrentSettings = Settings.GetDefaultSettings();
-        SetDirty();
+		CurrentSettings = Settings.GetDefaultSettings();
+		SetDirty();
 #endif
 
-        //Also clear overrides
-        Overrides = null;
-        
-        //Some settings should still persist or else they'll be annoying
-        SetRule("staticlightswarningacknowledged", staticLightsWarningAcknowledged, false);
-        SetRule("replaymode", replayMode, false);
+		//Also clear overrides
+		Overrides = null;
 
-        OnSettingsReset?.Invoke();
-        OnSettingsUpdated?.Invoke("all");
+		//Some settings should still persist or else they'll be annoying
+		SetRule("staticlightswarningacknowledged", staticLightsWarningAcknowledged, false);
+		SetRule("replaymode", replayMode, false);
 
-        ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Settings have been reset.");
-    }
+		OnSettingsReset?.Invoke();
+		OnSettingsUpdated?.Invoke("all");
 
-
-    private void UpdateUIState(UIState newState)
-    {
-        if(UseOverrides && newState == UIState.MapSelection)
-        {
-            //Clear settings overrides when exiting a map
-            Overrides = null;
-            OnSettingsUpdated?.Invoke("all");
-        }
-    }
+		ErrorHandler.Instance.ShowPopup(ErrorType.Notification, "Settings have been reset.");
+	}
 
 
-    private void Awake()
-    {
-        UIStateManager.OnUIStateChanged += UpdateUIState;
+	private void UpdateUIState(UIState newState) {
+		if (UseOverrides && newState == UIState.MapSelection) {
+			//Clear settings overrides when exiting a map
+			Overrides = null;
+			OnSettingsUpdated?.Invoke("all");
+		}
+	}
 
-        //Update the default settings
-        Settings.DefaultSettings.Bools = Settings.SerializedOptionsToDictionary<bool>(defaultBools);
-        Settings.DefaultSettings.Ints = Settings.SerializedOptionsToDictionary<int>(defaultInts);
-        Settings.DefaultSettings.Floats = Settings.SerializedOptionsToDictionary<float>(defaultFloats);
-        Settings.DefaultSettings.AddColorRules(defaultColors);
+
+	private void Awake() {
+		UIStateManager.OnUIStateChanged += UpdateUIState;
+
+		//Update the default settings
+		Settings.DefaultSettings.Bools = Settings.SerializedOptionsToDictionary<bool>(defaultBools);
+		Settings.DefaultSettings.Ints = Settings.SerializedOptionsToDictionary<int>(defaultInts);
+		Settings.DefaultSettings.Floats = Settings.SerializedOptionsToDictionary<float>(defaultFloats);
+		Settings.DefaultSettings.AddColorRules(defaultColors);
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-        //Load settings from json if not running in WebGL
-        //Otherwise settings are handled through playerprefs instead
-        LoadSettings();
+		//Load settings from json if not running in WebGL
+		//Otherwise settings are handled through playerprefs instead
+		LoadSettings();
 #else
         CurrentSettings = new Settings();
         OnSettingsUpdated?.Invoke("all");
 #endif
-    }
+	}
 
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-    private void Update()
-    {
-        if(dirtyTime > 0f)
-        {
-            //A setting has been changed, count down the timer to save settings
-            dirtyTime -= Time.deltaTime;
+	private void Update() {
+		if (dirtyTime > 0f) {
+			//A setting has been changed, count down the timer to save settings
+			dirtyTime -= Time.deltaTime;
 
-            if(dirtyTime <= 0f)
-            {
-                SaveSettings();
-            }
-        }
-    }
+			if (dirtyTime <= 0f) {
+				SaveSettings();
+			}
+		}
+	}
 #endif
 }
 
 
 [Serializable]
-public class Settings
-{
-    public Dictionary<string, bool> Bools;
-    public Dictionary<string, int> Ints;
-    public Dictionary<string, float> Floats;
+public class Settings {
+	public Dictionary<string, bool> Bools;
+	public Dictionary<string, int> Ints;
+	public Dictionary<string, float> Floats;
 
 
-    public Settings()
-    {
-        Bools = new Dictionary<string, bool>();
-        Ints = new Dictionary<string, int>();
-        Floats = new Dictionary<string, float>();
-    }
+	public Settings() {
+		Bools = new Dictionary<string, bool>();
+		Ints = new Dictionary<string, int>();
+		Floats = new Dictionary<string, float>();
+	}
 
 
-    public void AddColorRule(string name, Color color)
-    {
-        bool success = Floats.TryAdd(name + ".r", color.r);
-        success &= Floats.TryAdd(name + ".g", color.g);
-        success &= Floats.TryAdd(name + ".b", color.b);
-        if(!success)
-        {
-            Debug.LogWarning($"Failed to add setting '{name}'. Is it a duplicate?");
-        }
-    }
+	public void AddColorRule(string name, Color color) {
+		bool success = Floats.TryAdd(name + ".r", color.r);
+		success &= Floats.TryAdd(name + ".g", color.g);
+		success &= Floats.TryAdd(name + ".b", color.b);
+		if (!success) {
+			Debug.LogWarning($"Failed to add setting '{name}'. Is it a duplicate?");
+		}
+	}
 
 
-    public void AddColorRules(IEnumerable<SerializedOption<Color>> colors)
-    {
-        foreach(SerializedOption<Color> color in colors)
-        {
-            AddColorRule(color.Name, color.Value);
-        }
-    }
+	public void AddColorRules(IEnumerable<SerializedOption<Color>> colors) {
+		foreach (SerializedOption<Color> color in colors) {
+			AddColorRule(color.Name, color.Value);
+		}
+	}
 
 
-    public static Settings DefaultSettings = new Settings();
-    public static Settings GetDefaultSettings()
-    {
-        //Provides a deep copy of the default settings I hate reference types I hate reference types I hate reference types I hate reference types I hate reference types
-        Settings settings = new Settings
-        {
-            Bools = new Dictionary<string, bool>(),
-            Ints = new Dictionary<string, int>(),
-            Floats = new Dictionary<string, float>()
-        };
+	public static Settings DefaultSettings = new Settings();
+	public static Settings GetDefaultSettings() {
+		//Provides a deep copy of the default settings I hate reference types I hate reference types I hate reference types I hate reference types I hate reference types
+		Settings settings = new Settings {
+			Bools = new Dictionary<string, bool>(),
+			Ints = new Dictionary<string, int>(),
+			Floats = new Dictionary<string, float>()
+		};
 
-        foreach(var key in DefaultSettings.Bools)
-        {
-            settings.Bools.Add(key.Key, key.Value);
-        }
+		foreach (var key in DefaultSettings.Bools) {
+			settings.Bools.Add(key.Key, key.Value);
+		}
 
-        foreach(var key in DefaultSettings.Ints)
-        {
-            settings.Ints.Add(key.Key, key.Value);
-        }
+		foreach (var key in DefaultSettings.Ints) {
+			settings.Ints.Add(key.Key, key.Value);
+		}
 
-        foreach(var key in DefaultSettings.Floats)
-        {
-            settings.Floats.Add(key.Key, key.Value);
-        }
+		foreach (var key in DefaultSettings.Floats) {
+			settings.Floats.Add(key.Key, key.Value);
+		}
 
-        return settings;
-    }
+		return settings;
+	}
 
 
-    public static Dictionary<string, T> SerializedOptionsToDictionary<T>(List<SerializedOption<T>> options)
-    {
-        Dictionary<string, T> dictionary = new Dictionary<string, T>();
+	public static Dictionary<string, T> SerializedOptionsToDictionary<T>(List<SerializedOption<T>> options) {
+		Dictionary<string, T> dictionary = new Dictionary<string, T>();
 
-        foreach(SerializedOption<T> option in options)
-        {
+		foreach (SerializedOption<T> option in options) {
 #if UNITY_WEBGL
             T value = option.ValueWebGL.Enabled ? option.ValueWebGL.Value : option.Value;
             bool success = dictionary.TryAdd(option.Name, value);
 #else
-            bool success = dictionary.TryAdd(option.Name, option.Value);
+			bool success = dictionary.TryAdd(option.Name, option.Value);
 #endif
-            if(!success)
-            {
-                Debug.LogWarning($"Failed to add setting '{option.Name}'. Is it a duplicate?");
-            }
-        }
+			if (!success) {
+				Debug.LogWarning($"Failed to add setting '{option.Name}'. Is it a duplicate?");
+			}
+		}
 
-        return dictionary;
-    }
+		return dictionary;
+	}
 
 
-    public Settings ExportOverrides()
-    {
-        Settings overrides = new Settings();
+	public Settings ExportOverrides() {
+		Settings overrides = new Settings();
 
-        foreach(KeyValuePair<string, bool> pair in Bools)
-        {
-            //Compare against the default value
-            bool defaultValue;
-            if(!DefaultSettings.Bools.TryGetValue(pair.Key, out defaultValue))
-            {
-                defaultValue = false;
-            }
+		foreach (KeyValuePair<string, bool> pair in Bools) {
+			//Compare against the default value
+			bool defaultValue;
+			if (!DefaultSettings.Bools.TryGetValue(pair.Key, out defaultValue)) {
+				defaultValue = false;
+			}
 
-            if(pair.Value != defaultValue)
-            {
-                //This setting is different from default, add it to the overrides
-                overrides.Bools.Add(pair.Key, pair.Value);
-            }
-        }
+			if (pair.Value != defaultValue) {
+				//This setting is different from default, add it to the overrides
+				overrides.Bools.Add(pair.Key, pair.Value);
+			}
+		}
 
-        foreach(KeyValuePair<string, int> pair in Ints)
-        {
-            //Compare against the default value
-            int defaultValue;
-            if(!DefaultSettings.Ints.TryGetValue(pair.Key, out defaultValue))
-            {
-                defaultValue = 0;
-            }
+		foreach (KeyValuePair<string, int> pair in Ints) {
+			//Compare against the default value
+			int defaultValue;
+			if (!DefaultSettings.Ints.TryGetValue(pair.Key, out defaultValue)) {
+				defaultValue = 0;
+			}
 
-            if(pair.Value != defaultValue)
-            {
-                //This setting is different from default, add it to the overrides
-                overrides.Ints.Add(pair.Key, pair.Value);
-            }
-        }
+			if (pair.Value != defaultValue) {
+				//This setting is different from default, add it to the overrides
+				overrides.Ints.Add(pair.Key, pair.Value);
+			}
+		}
 
-        foreach(KeyValuePair<string, float> pair in Floats)
-        {
-            //Compare against the default value
-            float defaultValue;
-            if(!DefaultSettings.Floats.TryGetValue(pair.Key, out defaultValue))
-            {
-                defaultValue = 0f;
-            }
+		foreach (KeyValuePair<string, float> pair in Floats) {
+			//Compare against the default value
+			float defaultValue;
+			if (!DefaultSettings.Floats.TryGetValue(pair.Key, out defaultValue)) {
+				defaultValue = 0f;
+			}
 
-            if(pair.Value != defaultValue)
-            {
-                //This setting is different from default, add it to the overrides
-                overrides.Floats.Add(pair.Key, pair.Value);
-            }
-        }
+			if (pair.Value != defaultValue) {
+				//This setting is different from default, add it to the overrides
+				overrides.Floats.Add(pair.Key, pair.Value);
+			}
+		}
 
-        return overrides;
-    }
+		return overrides;
+	}
 }
 
 
 [Serializable]
-public struct SerializedOption<T>
-{
-    public string Name;
-    public T Value;
-    public Optional<T> ValueWebGL;
+public struct SerializedOption<T> {
+	public string Name;
+	public T Value;
+	public Optional<T> ValueWebGL;
 }

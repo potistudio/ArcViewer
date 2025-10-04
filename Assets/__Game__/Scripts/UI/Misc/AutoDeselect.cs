@@ -1,9 +1,7 @@
 using UnityEngine;
 
-public class AutoDeselect : MonoBehaviour
-{
-    private void OnDisable()
-    {
-        EventSystemHelper.Deselect();
-    }
+public class AutoDeselect : MonoBehaviour {
+	private void OnDisable() {
+		EventSystemHelper.Deselect();
+	}
 }

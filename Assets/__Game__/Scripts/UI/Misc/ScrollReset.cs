@@ -1,20 +1,17 @@
 using UnityEngine;
 
 [RequireComponent(typeof(RectTransform))]
-public class ScrollReset : MonoBehaviour
-{
-    [SerializeField] Vector2 defaultPosition;
+public class ScrollReset : MonoBehaviour {
+	[SerializeField] Vector2 defaultPosition;
 
-    private RectTransform rectTransform;
+	private RectTransform rectTransform;
 
 
-    private void OnEnable()
-    {
-        if(!rectTransform)
-        {
-            rectTransform = GetComponent<RectTransform>();
-        }
+	private void OnEnable() {
+		if (!rectTransform) {
+			rectTransform = GetComponent<RectTransform>();
+		}
 
-        rectTransform.anchoredPosition = defaultPosition;
-    }
+		rectTransform.anchoredPosition = defaultPosition;
+	}
 }

@@ -1,18 +1,16 @@
 using UnityEngine;
 
-public class DisableWebGL : MonoBehaviour
-{
-    [SerializeField] private bool enableWebGL;
-    [SerializeField] private bool enableDesktop;
+public class DisableWebGL : MonoBehaviour {
+	[SerializeField] private bool enableWebGL;
+	[SerializeField] private bool enableDesktop;
 
 
-    private void OnEnable()
-    {
+	private void OnEnable() {
 #if UNITY_WEBGL
         if(enableWebGL) return;
 #else
-        if(enableDesktop) return;
+		if (enableDesktop) return;
 #endif
-        gameObject.SetActive(false);
-    }
+		gameObject.SetActive(false);
+	}
 }

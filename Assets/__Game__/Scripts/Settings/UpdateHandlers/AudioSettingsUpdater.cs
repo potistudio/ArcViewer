@@ -1,39 +1,35 @@
 using System.Linq;
 using UnityEngine;
 
-public class AudioSettingsUpdater : MonoBehaviour
-{
-    [SerializeField] private HitSoundManager hitSoundManager;
+public class AudioSettingsUpdater : MonoBehaviour {
+	[SerializeField] private HitSoundManager hitSoundManager;
 
-    [Space]
-    [SerializeField] private AudioClip[] hitSounds;
-    [SerializeField] private AudioClip[] badHitSounds;
+	[Space]
+	[SerializeField] private AudioClip[] hitSounds;
+	[SerializeField] private AudioClip[] badHitSounds;
 
-    private string[] hitSoundSettings = new string[]
-    {
-        "hitsound",
-        "spatialhitsounds",
-        "randomhitsoundpitch",
-        "usebadhitsound",
-        "badhitsound",
-        "mutemisses"
-    };
+	private string[] hitSoundSettings = new string[]
+	{
+		"hitsound",
+		"spatialhitsounds",
+		"randomhitsoundpitch",
+		"usebadhitsound",
+		"badhitsound",
+		"mutemisses"
+	};
 
 
-    public void UpdateAudioSettings(string setting)
-    {
-        bool allSettings = setting == "all";
-        if(allSettings || setting == "musicvolume")
-        {
-            SongManager.Instance.MusicVolume = Mathf.Clamp01(SettingsManager.GetFloat("musicvolume"));
-        }
+	public void UpdateAudioSettings(string setting) {
+		bool allSettings = setting == "all";
+		if (allSettings || setting == "musicvolume") {
+			SongManager.Instance.MusicVolume = Mathf.Clamp01(SettingsManager.GetFloat("musicvolume"));
+		}
 
-        if(allSettings || setting == "hitsoundvolume" || setting == "chainvolume")
-        {
-            float hitSoundVolume = Mathf.Clamp01(SettingsManager.GetFloat("hitsoundvolume"));
+		if (allSettings || setting == "hitsoundvolume" || setting == "chainvolume") {
+			float hitSoundVolume = Mathf.Clamp01(SettingsManager.GetFloat("hitsoundvolume"));
 #if !UNITY_WEBGL || UNITY_EDITOR
-            hitSoundManager.HitSoundVolume = hitSoundVolume;
-            hitSoundManager.ChainVolume = Mathf.Clamp01(SettingsManager.GetFloat("chainvolume")) * hitSoundVolume;
+			hitSoundManager.HitSoundVolume = hitSoundVolume;
+			hitSoundManager.ChainVolume = Mathf.Clamp01(SettingsManager.GetFloat("chainvolume")) * hitSoundVolume;
 #else
             float chainSoundVolume = SettingsManager.GetFloat("chainvolume");
 
@@ -53,33 +49,31 @@ public class AudioSettingsUpdater : MonoBehaviour
             WebHitSoundController.CurrentHitSoundVolume = hitSoundVolume;
             WebHitSoundController.CurrentChainSoundVolume = chainSoundVolume;
 #endif
-        }
+		}
 
-        if(allSettings || hitSoundSettings.Contains(setting))
-        {
-            int hitsound = SettingsManager.GetInt("hitsound");
-            hitsound = Mathf.Clamp(hitsound, 0, hitSounds.Length - 1);
+		if (allSettings || hitSoundSettings.Contains(setting)) {
+			int hitsound = SettingsManager.GetInt("hitsound");
+			hitsound = Mathf.Clamp(hitsound, 0, hitSounds.Length - 1);
 
-            int badHitsound = SettingsManager.GetInt("badhitsound");
-            badHitsound = Mathf.Clamp(badHitsound, 0, badHitSounds.Length - 1);
+			int badHitsound = SettingsManager.GetInt("badhitsound");
+			badHitsound = Mathf.Clamp(badHitsound, 0, badHitSounds.Length - 1);
 
 #if !UNITY_WEBGL || UNITY_EDITOR
-            HitSoundManager.HitSound = hitSounds[hitsound];
-            HitSoundManager.BadHitSound = badHitSounds[badHitsound];
+			HitSoundManager.HitSound = hitSounds[hitsound];
+			HitSoundManager.BadHitSound = badHitSounds[badHitsound];
 #else
             WebHitSoundController.SetHitSound(hitsound);
             WebHitSoundController.SetBadHitSound(badHitsound);
 #endif
 
-            HitSoundManager.ClearScheduledSounds();
-            ObjectManager.Instance.RescheduleHitsounds(TimeManager.Playing);
-        }
-    }
-    
+			HitSoundManager.ClearScheduledSounds();
+			ObjectManager.Instance.RescheduleHitsounds(TimeManager.Playing);
+		}
+	}
 
-    private void Start()
-    {
-        SettingsManager.OnSettingsUpdated += UpdateAudioSettings;
-        UpdateAudioSettings("all");
-    }
+
+	private void Start() {
+		SettingsManager.OnSettingsUpdated += UpdateAudioSettings;
+		UpdateAudioSettings("all");
+	}
 }

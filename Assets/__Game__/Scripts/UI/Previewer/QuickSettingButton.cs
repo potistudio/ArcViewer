@@ -1,60 +1,52 @@
 using UnityEngine;
 using UnityEngine.UI;
 
-public class QuickSettingButton : MonoBehaviour
-{
-    [SerializeField] private string setting;
-    [SerializeField] private Image buttonImage;
-    [SerializeField] private Tooltip tooltip;
+public class QuickSettingButton : MonoBehaviour {
+	[SerializeField] private string setting;
+	[SerializeField] private Image buttonImage;
+	[SerializeField] private Tooltip tooltip;
 
-    [Space]
-    [SerializeField] private Color settingOffColor;
-    [SerializeField] private Color settingOnColor;
+	[Space]
+	[SerializeField] private Color settingOffColor;
+	[SerializeField] private Color settingOnColor;
 
-    [Space]
-    [SerializeField] private string settingOffTooltip;
-    [SerializeField] private string settingOnTooltip;
-
-
-    public void UpdateSettings(string changedSetting)
-    {
-        if(changedSetting == "all" || changedSetting == setting)
-        {
-            UpdateButton(SettingsManager.GetBool(setting));
-        }
-    }
+	[Space]
+	[SerializeField] private string settingOffTooltip;
+	[SerializeField] private string settingOnTooltip;
 
 
-    private void UpdateButton(bool settingOn)
-    {
-        buttonImage.color = settingOn ? settingOnColor : settingOffColor;
-        tooltip.Text = settingOn ? settingOnTooltip : settingOffTooltip;
-    }
+	public void UpdateSettings(string changedSetting) {
+		if (changedSetting == "all" || changedSetting == setting) {
+			UpdateButton(SettingsManager.GetBool(setting));
+		}
+	}
 
 
-    public void ToggleSetting(bool updateTooltip)
-    {
-        bool settingOn = SettingsManager.GetBool(setting);
-
-        SettingsManager.SetRule(setting, !settingOn);
-
-        if(updateTooltip)
-        {
-            tooltip.ForceUpdate();
-        }
-    }
+	private void UpdateButton(bool settingOn) {
+		buttonImage.color = settingOn ? settingOnColor : settingOffColor;
+		tooltip.Text = settingOn ? settingOnTooltip : settingOffTooltip;
+	}
 
 
-    private void OnEnable()
-    {
-        SettingsManager.OnSettingsUpdated += UpdateSettings;
+	public void ToggleSetting(bool updateTooltip) {
+		bool settingOn = SettingsManager.GetBool(setting);
 
-        UpdateButton(SettingsManager.Loaded ? SettingsManager.GetBool(setting) : false);
-    }
+		SettingsManager.SetRule(setting, !settingOn);
+
+		if (updateTooltip) {
+			tooltip.ForceUpdate();
+		}
+	}
 
 
-    private void OnDisable()
-    {
-        SettingsManager.OnSettingsUpdated -= UpdateSettings;
-    }
+	private void OnEnable() {
+		SettingsManager.OnSettingsUpdated += UpdateSettings;
+
+		UpdateButton(SettingsManager.Loaded ? SettingsManager.GetBool(setting) : false);
+	}
+
+
+	private void OnDisable() {
+		SettingsManager.OnSettingsUpdated -= UpdateSettings;
+	}
 }
