@@ -61,10 +61,10 @@ MonoBehaviour:
     m_Value: 1
   intensity:
     m_OverrideState: 1
-    m_Value: 1.2
+    m_Value: 1
   scatter:
     m_OverrideState: 1
-    m_Value: 0.4
+    m_Value: 0.8
   clamp:
     m_OverrideState: 0
     m_Value: 5
@@ -86,7 +86,7 @@ MonoBehaviour:
     dimension: 1
   dirtIntensity:
     m_OverrideState: 1
-    m_Value: 8
+    m_Value: 0.4
 --- !u!114 &-2698694796867525460
 MonoBehaviour:
   m_ObjectHideFlags: 3
@@ -243,10 +243,10 @@ MonoBehaviour:
   active: 1
   postExposure:
     m_OverrideState: 1
-    m_Value: 1.2
+    m_Value: 1
   contrast:
     m_OverrideState: 1
-    m_Value: 0
+    m_Value: -32
   colorFilter:
     m_OverrideState: 0
     m_Value: {r: 1, g: 1, b: 1, a: 1}
