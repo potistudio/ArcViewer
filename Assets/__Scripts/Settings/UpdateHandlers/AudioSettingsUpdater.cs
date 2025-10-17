@@ -23,14 +23,14 @@ public class AudioSettingsUpdater : MonoBehaviour
     public void UpdateAudioSettings(string setting)
     {
         bool allSettings = setting == "all";
-        if(allSettings || setting == "musicvolume")
+        if(allSettings || setting == "musicvolume" || setting == "enablemusic")
         {
-            SongManager.Instance.MusicVolume = Mathf.Clamp01(SettingsManager.GetFloat("musicvolume"));
+            SongManager.Instance.MusicVolume = SettingsManager.GetBool("enablemusic") ? Mathf.Clamp01(SettingsManager.GetFloat("musicvolume")) : 0f;
         }
 
-        if(allSettings || setting == "hitsoundvolume" || setting == "chainvolume")
+        if(allSettings || setting == "hitsoundvolume" || setting == "chainvolume" || setting == "enablehitsound")
         {
-            float hitSoundVolume = Mathf.Clamp01(SettingsManager.GetFloat("hitsoundvolume"));
+            float hitSoundVolume = SettingsManager.GetBool("enablehitsound") ? Mathf.Clamp01(SettingsManager.GetFloat("hitsoundvolume")) : 0f;
 #if !UNITY_WEBGL || UNITY_EDITOR
             hitSoundManager.HitSoundVolume = hitSoundVolume;
             hitSoundManager.ChainVolume = Mathf.Clamp01(SettingsManager.GetFloat("chainvolume")) * hitSoundVolume;
