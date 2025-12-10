@@ -268,6 +268,7 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     {
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         HideSliders();
+        UpdateSprite();
     }
 
 
