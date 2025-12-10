@@ -3,7 +3,6 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
-using NUnit.Framework;
 using System.Linq;
 
 public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
