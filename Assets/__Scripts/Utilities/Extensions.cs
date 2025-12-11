@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.IO.Compression;
 using System.Linq;
 using UnityEngine;
@@ -205,15 +206,37 @@ public static class Extensions
 
     public static List<ZipArchiveEntry> GetEntriesInFolder(this ZipArchive archive, string folderName)
     {
+        bool LocatedInTargetFolder(string[] folders) => folders[0].Equals(folderName, StringComparison.InvariantCultureIgnoreCase);
+
         List<ZipArchiveEntry> entries = new List<ZipArchiveEntry>();
 
         foreach(ZipArchiveEntry entry in archive.Entries)
         {
-            string[] folders = entry.FullName.Split('\\');
-            if(folders.Any(x => x.Equals(folderName, StringComparison.InvariantCultureIgnoreCase)))
+            if(string.IsNullOrEmpty(Path.GetFileName(entry.FullName)))
+            {
+                //Ignore the folders themselves
+                continue;
+            }
+
+            string directory = Path.GetDirectoryName(entry.FullName);
+            if(string.IsNullOrEmpty(directory))
+            {
+                continue;
+            }
+
+            string[] folders = directory.Split(Path.DirectorySeparatorChar);
+            if(LocatedInTargetFolder(folders))
             {
                 //This entry is in the target folder
                 entries.Add(entry);
+            }
+            else
+            {
+                folders = directory.Split(Path.AltDirectorySeparatorChar);
+                if(LocatedInTargetFolder(folders))
+                {
+                    entries.Add(entry);
+                }
             }
         }
 
