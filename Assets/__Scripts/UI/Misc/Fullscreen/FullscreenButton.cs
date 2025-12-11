@@ -19,6 +19,7 @@ public class FullscreenButton : MonoBehaviour, IPointerDownHandler
     private bool isFullscreen => Screen.fullScreen;
     private int preferredWindowWidth = Screen.width;
     private int preferredWindowHeight = Screen.height;
+    private FullScreenMode preferredNonFSScreenMode = FullScreenMode.Windowed;
 #else
     private bool isFullscreen => GetFullscreen();
 #endif
@@ -32,12 +33,17 @@ public class FullscreenButton : MonoBehaviour, IPointerDownHandler
             //Store the current resolution so we can go back to it when exiting fullscreen
             preferredWindowWidth = Screen.width;
             preferredWindowHeight = Screen.height;
+            preferredNonFSScreenMode = Screen.fullScreenMode switch
+            {
+                FullScreenMode.ExclusiveFullScreen or FullScreenMode.FullScreenWindow => FullScreenMode.MaximizedWindow,
+                _ => Screen.fullScreenMode,
+            };
 
             Screen.SetResolution(Screen.currentResolution.width, Screen.currentResolution.height, FullScreenMode.FullScreenWindow);
         }
         else
         {
-            Screen.SetResolution(preferredWindowWidth, preferredWindowHeight, FullScreenMode.Windowed);
+            Screen.SetResolution(preferredWindowWidth, preferredWindowHeight, preferredNonFSScreenMode);
         }
     }
 #endif
