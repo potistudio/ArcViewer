@@ -174,7 +174,7 @@ public class HotReloader : MonoBehaviour
     }
 
 
-    private void start()
+    private void Start()
     {
         MapLoader.OnLoadingFailed += ClearLoadedMap;
     }

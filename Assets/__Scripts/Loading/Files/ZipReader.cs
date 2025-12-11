@@ -144,6 +144,8 @@ public class ZipReader : IMapDataLoader
         if(string.IsNullOrEmpty(info?.audio?.audioDataFilename))
         {
             //No audio data is listed by the info
+            Debug.LogWarning($"Info.dat lists no AudioData!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
             return null;
         }
 
