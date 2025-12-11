@@ -23,6 +23,43 @@ public class AudioSettingsUpdater : MonoBehaviour
     public void UpdateAudioSettings(string setting)
     {
         bool allSettings = setting == "all";
+
+        if(allSettings || setting == "enablemusic")
+        {
+            bool musicEnabled = SettingsManager.GetBool("enablemusic");
+            if(musicEnabled && SettingsManager.GetFloat("musicvolume") <= 0.001f)
+            {
+                // When unmuting with volume set to 0, just set volume to the default value
+                float defaultMusicVolume;
+                if(!Settings.GetDefaultSettings().Floats.TryGetValue("musicvolume", out defaultMusicVolume))
+                {
+                    defaultMusicVolume = 0.5f;
+                }
+                SettingsManager.SetRule("musicvolume", defaultMusicVolume);
+
+                // Return here because we've just effectively re-called this method by setting volume
+                return;
+            }
+        }
+
+        if(allSettings || setting == "enablehitsound")
+        {
+            bool hitSoundsEnabled = SettingsManager.GetBool("enablehitsound");
+            if(hitSoundsEnabled && SettingsManager.GetFloat("hitsoundvolume") <= 0.001f)
+            {
+                // When unmuting with volume set to 0, just set volume to the default value
+                float defaultHitSoundVolume;
+                if(!Settings.GetDefaultSettings().Floats.TryGetValue("hitsoundvolume", out defaultHitSoundVolume))
+                {
+                    defaultHitSoundVolume = 0.5f;
+                }
+                SettingsManager.SetRule("hitsoundvolume", defaultHitSoundVolume);
+
+                // Return here because we've just effectively re-called this method by setting volume
+                return;
+            }
+        }
+
         if(allSettings || setting == "musicvolume" || setting == "enablemusic")
         {
             SongManager.Instance.MusicVolume = SettingsManager.GetBool("enablemusic") ? Mathf.Clamp01(SettingsManager.GetFloat("musicvolume")) : 0f;
