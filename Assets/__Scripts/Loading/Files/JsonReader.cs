@@ -100,6 +100,12 @@ public static class JsonReader
 
     public static async Task<BeatmapBpmEvent[]> GetBpmEventsAsync(BeatmapInfo info, string directory)
     {
+        if(!info.useAudioMetadata)
+        {
+            //This info was converted from V2, which doesn't use audio metadata for BPM events
+            return null;
+        }
+
         if(string.IsNullOrEmpty(info?.audio?.audioDataFilename))
         {
             //No audio data is listed by the info
