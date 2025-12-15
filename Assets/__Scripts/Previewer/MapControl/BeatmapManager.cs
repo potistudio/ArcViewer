@@ -73,6 +73,9 @@ public class BeatmapManager : MonoBehaviour
             MappingExtensions = _currentDifficulty.requirements.Contains("Mapping Extensions");
             NoodleExtensions = _currentDifficulty.requirements.Contains("Noodle Extensions");
 
+            UseV4Walls = ShouldBeatmapUseV4WallBehavior(_currentDifficulty.beatmapDifficulty);
+            Debug.Log($"Using V4 wall behavior: {UseV4Walls}");
+
             if(NoodleExtensions)
             {
                 ErrorHandler.Instance.ShowPopup(ErrorType.Warning, "Noodle Extensions is not fully supported! Things may not display correctly.");
@@ -86,6 +89,8 @@ public class BeatmapManager : MonoBehaviour
             OnBeatmapDifficultyChanged?.Invoke(_currentDifficulty);
         }
     }
+
+    public static bool UseV4Walls { get; private set; }
 
     public static string EnvironmentName => CurrentDifficulty.environmentName;
 
@@ -138,6 +143,39 @@ public class BeatmapManager : MonoBehaviour
         float hjd = DefaultHJD + customOffset;
         float bpm = Info.audio.bpm;
         return 60f / bpm * hjd;
+    }
+
+
+    private static bool ShouldBeatmapUseV4WallBehavior(BeatmapDifficulty beatmap)
+    {
+        //Wall behavior was adjusted in beatmap version 4.1.0
+        string version = beatmap.Version;
+        if(string.IsNullOrEmpty(version))
+        {
+            //No listed version - in this case we'll just assume it's later than 4.1.0
+            return true;
+        }
+
+        string[] versionNumbers = version.Split('.');
+        if(versionNumbers.Length < 3)
+        {
+            //Not a valid version number - again assume it's some later format or something
+            return true;
+        }
+        if(int.TryParse(versionNumbers[0], out int major) && major < 4)
+        {
+            //Major version is less than 4 (in theory means V2 or V3 map)
+            return false;
+        }
+        if(major == 4 && int.TryParse(versionNumbers[1], out int minor) && minor < 1)
+        {
+            //Version 4.0.x did not have the new wall behavior
+            return false;
+        }
+
+        //Either failed to parse something (new/broken version) or this is a new enough version
+        //In either case use the new behavior
+        return true;
     }
 
 

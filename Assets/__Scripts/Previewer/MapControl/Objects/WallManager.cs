@@ -244,8 +244,13 @@ public class Wall : MapObject
         int y = o.y;
         if(!BeatmapManager.MappingExtensions && !BeatmapManager.NoodleExtensions)
         {
-            //Height and y are capped in vanilla
-            y = Mathf.Clamp(y, 0, 2);
+            //Height and y are capped differently depending on version
+            if(BeatmapManager.UseV4Walls)
+            {
+                y = Mathf.Clamp(y, 0, 4);
+            }
+            else y = Mathf.Clamp(y, 0, 2);
+            
             height = Mathf.Min(height, 5f - y);
         }
 
