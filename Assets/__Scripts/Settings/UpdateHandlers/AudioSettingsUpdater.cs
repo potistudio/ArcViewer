@@ -74,7 +74,7 @@ public class AudioSettingsUpdater : MonoBehaviour
 #else
             float chainSoundVolume = SettingsManager.GetFloat("chainvolume");
 
-            WebHitSoundController.SetHitSoundVolume(hitsoundvolume);
+            WebHitSoundController.SetHitSoundVolume(hitSoundVolume);
             WebHitSoundController.SetChainSoundVolume(chainSoundVolume);
 
             bool hitSoundsOff = WebHitSoundController.CurrentHitSoundVolume < Mathf.Epsilon;
