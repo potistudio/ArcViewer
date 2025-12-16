@@ -76,7 +76,8 @@ public class EnvironmentManager : MonoBehaviour
         "ColliderEnvironment",
         "BritneyEnvironment",
         "Monstercat2Environment",
-        "MetallicaEnvironment"
+        "MetallicaEnvironment",
+        "GridEnvironment"
     };
 
     private static readonly string[] supportedEnvironments = new string[]

@@ -175,6 +175,8 @@ public class ColorManager : MonoBehaviour
                 return Monstercat2Colors;
             case "MetallicaEnvironment":
                 return MetallicaColors;
+            case "GridEnvironment":
+                return CubeColors;
         }
     }
 
@@ -681,6 +683,20 @@ public class ColorManager : MonoBehaviour
         BoostLightColor2 = new Color(0f, 0.7490196f, 0.6313726f),
         BoostWhiteLightColor = new Color(0.5137255f, 0.6078314f, 0.6784314f),
         WallColor = new Color(0.8392157f, 0.09803922f, 0f)
+    };
+
+
+    public static ColorPalette CubeColors => new ColorPalette
+    {
+        LeftNoteColor = new Color(0.7490196078431373f, 0.5607843137254902f, 0.27058823529411763f),
+        RightNoteColor = new Color(0.48627450980392156f, 0.23921568627450981f, 0.7843137254901961f),
+        LightColor1 = new Color(0.8980392156862745f, 0.6313725490196078f, 0.16470588235294117f),
+        LightColor2 = new Color(0.6313725490196078f, 0.2823529411764706f, 0.8549019607843137f),
+        WhiteLightColor = Color.white,
+        BoostLightColor1 = new Color(0.8745098039215686f, 0f, 0.00392156862745098f),
+        BoostLightColor2 = new Color(0.44313725490196076f, 0.4627450980392157f, 0.9921568627450981f),
+        BoostWhiteLightColor = Color.white,
+        WallColor = new Color(0.7215686274509804f, 0.5058823529411764f, 0.9725490196078431f)
     };
 }
 
