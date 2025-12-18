@@ -3,10 +3,12 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.EventSystems;
 using SFB;
+using System.IO;
 
 public class ExplorerManager : MonoBehaviour, IPointerDownHandler
 {
     [SerializeField] private MapLoader mapLoader;
+    [SerializeField] private ExplorerPathLoader pathLoader;
 
 
 #if UNITY_WEBGL && !UNITY_EDITOR
@@ -43,7 +45,8 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
     }
 
 
-    public void OpenFileExplorer()
+#if !UNITY_WEBGL || UNITY_EDITOR
+    private void OpenFileExplorer()
     {
         ExtensionFilter[] extensions;
         if(!ReplayManager.IsReplayMode && SettingsManager.GetBool("replaymode"))
@@ -61,17 +64,24 @@ public class ExplorerManager : MonoBehaviour, IPointerDownHandler
             };
         }
 
-        string[] paths = StandaloneFileBrowser.OpenFilePanel("Select Map", "", extensions, false);
+        string openLocation = ExplorerPathLoader.PreviousExplorerPath;
+        if(openLocation == null)
+        {
+            openLocation = "";
+        }
+
+        string[] paths = StandaloneFileBrowser.OpenFilePanel("Select Map", openLocation, extensions, false);
         
         if(paths.Length > 0)
         {
+            string directory = new FileInfo(paths[0]).Directory.FullName;
+            pathLoader.SetPreviousPath(directory);
             mapLoader.LoadMapInput(paths[0]);
         }
         else Debug.Log("No path selected!");
     }
 
 
-#if !UNITY_WEBGL || UNITY_EDITOR
     private void Start()
     {
         //Subscribe to the onClick event if this isn't WebGL
