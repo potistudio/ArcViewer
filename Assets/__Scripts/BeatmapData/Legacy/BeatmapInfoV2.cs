@@ -68,6 +68,9 @@ public class BeatmapInfoV2
             bpm = _beatsPerMinute
         };
 
+        //Tell loading to not try to read the audio metadata (which doesn't exist)
+        info.useAudioMetadata = false;
+
         info.coverImageFilename = _coverImageFilename;
 
         List<string> environmentNames = _environmentNames != null ? _environmentNames.ToList() : new List<string>();

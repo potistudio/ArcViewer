@@ -19,6 +19,9 @@ public class BeatmapInfo
     //This is depreciated, but still needed for converted V2 maps
     [NonSerialized] public float? songTimeOffset;
 
+    //Set to false for converted info V2, since audio metadata was not used
+    [NonSerialized] public bool useAudioMetadata = true;
+
     public bool HasFields => !string.IsNullOrEmpty(version) || song != null
         || audio != null || !string.IsNullOrEmpty(songPreviewFilename)
         || !string.IsNullOrEmpty(coverImageFilename) || environmentNames != null

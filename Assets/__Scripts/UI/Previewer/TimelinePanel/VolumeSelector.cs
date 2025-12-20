@@ -3,10 +3,10 @@ using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using TMPro;
+using System.Linq;
 
 public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitHandler
 {
-    [SerializeField] private Image image;
     [SerializeField] private GameObject sliderContainer;
 
     [Space]
@@ -19,6 +19,14 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     [SerializeField] private Color defaultColor;
     [SerializeField] private Color highlightedColor;
 
+    [Space]
+    [SerializeField] private Image image;
+    [SerializeField] private Tooltip tooltip;
+    [SerializeField] private Sprite activeSprite;
+    [SerializeField] private Sprite mutedSprite;
+    [SerializeField] private string activeTooltip;
+    [SerializeField] private string mutedTooltip;
+
     private bool hovered;
     private bool clicked;
     private bool musicTextSelected;
@@ -27,6 +35,8 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     private const float sliderStepScale = 0.05f;
     private const string musicRule = "musicvolume";
     private const string hitsoundRule = "hitsoundvolume";
+    private const string musicEnabledRule = "enablemusic";
+    private const string hitsoundEnabledRule = "enablehitsound";
 
 
     public void ShowSliders()
@@ -46,6 +56,17 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         image.color = defaultColor;
 
         sliderContainer.SetActive(false);
+    }
+
+
+    public void OnMuteButtonClick()
+    {
+        bool muted = IsMuted();
+
+        SetMusicMuted(!muted);
+        SetHitsoundMuted(!muted);
+
+        UpdateSprite();
     }
 
 
@@ -130,9 +151,21 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
         UpdateValueDisplay();
     }
 
+    private void SetMusicMuted(bool muted)
+    {
+        SettingsManager.SetRule(musicEnabledRule, !muted);
+    }
+
+
+    private void SetHitsoundMuted(bool muted)
+    {
+        SettingsManager.SetRule(hitsoundEnabledRule, !muted);
+    }
+
 
     private void SetMusicVolume(float musicVolume)
     {
+        SetMusicMuted(musicVolume == 0f);
         musicVolume = (float)Math.Round(musicVolume, 2);
         SettingsManager.SetRule(musicRule, musicVolume);
     }
@@ -140,22 +173,50 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
     private void SetHitsoundVolume(float hitsoundVolume)
     {
+        SetHitsoundMuted(hitsoundVolume == 0f);
         hitsoundVolume = (float)Math.Round(hitsoundVolume, 2);
         SettingsManager.SetRule(hitsoundRule, hitsoundVolume);
+    }
+
+
+    private bool IsMusicMuted()
+    {
+        return !SettingsManager.GetBool(musicEnabledRule);
+    }
+
+    
+    private bool IsHitsoundMuted()
+    {
+        return !SettingsManager.GetBool(hitsoundEnabledRule);
+    }
+
+
+    private bool IsMuted()
+    {
+        return IsMusicMuted() && IsHitsoundMuted();
     }
 
 
     private float GetMusicVolume()
     {
         float musicVolume = Mathf.Clamp01(SettingsManager.GetFloat(musicRule));
-        return (float)Math.Round(musicVolume, 2);
+        return IsMusicMuted() ? 0 : (float)Math.Round(musicVolume, 2);
     }
 
 
     private float GetHitsoundVolume()
     {
         float hitsoundVolume = Mathf.Clamp01(SettingsManager.GetFloat(hitsoundRule));
-        return (float)Math.Round(hitsoundVolume, 2);
+        return IsHitsoundMuted() ? 0 : (float)Math.Round(hitsoundVolume, 2);
+    }
+
+
+    private void UpdateSprite()
+    {
+        bool muted = IsMuted();
+        image.sprite = muted ? mutedSprite : activeSprite;
+        tooltip.Text = muted ? mutedTooltip : activeTooltip;
+        tooltip.ForceUpdate();
     }
 
 
@@ -169,6 +230,8 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
 
         hitsoundSlider.SetValueWithoutNotify(hitsoundVolume / sliderStepScale);
         hitsoundInputField.SetTextWithoutNotify(hitsoundVolume <= 0 ? "Off" : hitsoundVolume.ToString());
+
+        UpdateSprite();
     }
 
 
@@ -179,7 +242,7 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
             return;
         }
 
-        if(setting == "all" || setting == musicRule || setting == hitsoundRule)
+        if(setting == "all" || (new string[] { hitsoundRule, musicRule, hitsoundEnabledRule, musicEnabledRule }).Contains(setting))
         {
             UpdateValueDisplay();
         }
@@ -205,6 +268,7 @@ public class VolumeSelector : MonoBehaviour, IPointerEnterHandler, IPointerExitH
     {
         SettingsManager.OnSettingsUpdated += UpdateSettings;
         HideSliders();
+        UpdateSprite();
     }
 
 

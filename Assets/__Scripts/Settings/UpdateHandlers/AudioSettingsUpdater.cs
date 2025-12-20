@@ -23,22 +23,59 @@ public class AudioSettingsUpdater : MonoBehaviour
     public void UpdateAudioSettings(string setting)
     {
         bool allSettings = setting == "all";
-        if(allSettings || setting == "musicvolume")
+
+        if(allSettings || setting == "enablemusic")
         {
-            SongManager.Instance.MusicVolume = Mathf.Clamp01(SettingsManager.GetFloat("musicvolume"));
+            bool musicEnabled = SettingsManager.GetBool("enablemusic");
+            if(musicEnabled && SettingsManager.GetFloat("musicvolume") <= 0.001f)
+            {
+                // When unmuting with volume set to 0, just set volume to the default value
+                float defaultMusicVolume;
+                if(!Settings.GetDefaultSettings().Floats.TryGetValue("musicvolume", out defaultMusicVolume))
+                {
+                    defaultMusicVolume = 0.5f;
+                }
+                SettingsManager.SetRule("musicvolume", defaultMusicVolume);
+
+                // Return here because we've just effectively re-called this method by setting volume
+                return;
+            }
         }
 
-        if(allSettings || setting == "hitsoundvolume" || setting == "chainvolume")
+        if(allSettings || setting == "enablehitsound")
         {
-            float hitSoundVolume = Mathf.Clamp01(SettingsManager.GetFloat("hitsoundvolume"));
+            bool hitSoundsEnabled = SettingsManager.GetBool("enablehitsound");
+            if(hitSoundsEnabled && SettingsManager.GetFloat("hitsoundvolume") <= 0.001f)
+            {
+                // When unmuting with volume set to 0, just set volume to the default value
+                float defaultHitSoundVolume;
+                if(!Settings.GetDefaultSettings().Floats.TryGetValue("hitsoundvolume", out defaultHitSoundVolume))
+                {
+                    defaultHitSoundVolume = 0.5f;
+                }
+                SettingsManager.SetRule("hitsoundvolume", defaultHitSoundVolume);
+
+                // Return here because we've just effectively re-called this method by setting volume
+                return;
+            }
+        }
+
+        if(allSettings || setting == "musicvolume" || setting == "enablemusic")
+        {
+            SongManager.Instance.MusicVolume = SettingsManager.GetBool("enablemusic") ? Mathf.Clamp01(SettingsManager.GetFloat("musicvolume")) : 0f;
+        }
+
+        if(allSettings || setting == "hitsoundvolume" || setting == "chainvolume" || setting == "enablehitsound")
+        {
+            float hitSoundVolume = SettingsManager.GetBool("enablehitsound") ? Mathf.Clamp01(SettingsManager.GetFloat("hitsoundvolume")) : 0f;
 #if !UNITY_WEBGL || UNITY_EDITOR
             hitSoundManager.HitSoundVolume = hitSoundVolume;
             hitSoundManager.ChainVolume = Mathf.Clamp01(SettingsManager.GetFloat("chainvolume")) * hitSoundVolume;
 #else
             float chainSoundVolume = SettingsManager.GetFloat("chainvolume");
 
-            WebHitSoundController.SetHitSoundVolume(SettingsManager.GetFloat("hitsoundvolume"));
-            WebHitSoundController.SetChainSoundVolume(SettingsManager.GetFloat("chainvolume"));
+            WebHitSoundController.SetHitSoundVolume(hitSoundVolume);
+            WebHitSoundController.SetChainSoundVolume(chainSoundVolume);
 
             bool hitSoundsOff = WebHitSoundController.CurrentHitSoundVolume < Mathf.Epsilon;
             bool chainSoundsOff = WebHitSoundController.CurrentChainSoundVolume < Mathf.Epsilon;

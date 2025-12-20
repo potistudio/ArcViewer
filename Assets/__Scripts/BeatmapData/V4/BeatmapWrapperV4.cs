@@ -52,7 +52,7 @@ public class BeatmapWrapperV4 : BeatmapDifficulty
     {
         Beatmap = beatmap;
         Lightshow = lightshow;
-        bpmEvents = bpmChanges;
+        bpmEvents = bpmChanges ?? new BeatmapBpmEvent[0];
         Init();
     }
 

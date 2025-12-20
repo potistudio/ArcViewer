@@ -141,9 +141,17 @@ public class ZipReader : IMapDataLoader
 
     private BeatmapBpmEvent[] GetBpmEvents(BeatmapInfo info)
     {
+        if(!info.useAudioMetadata)
+        {
+            //This info was converted from V2, which doesn't use audio metadata for BPM events
+            return null;
+        }
+
         if(string.IsNullOrEmpty(info?.audio?.audioDataFilename))
         {
             //No audio data is listed by the info
+            Debug.LogWarning($"Info.dat lists no AudioData!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
             return null;
         }
 

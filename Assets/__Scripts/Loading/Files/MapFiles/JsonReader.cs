@@ -100,9 +100,17 @@ public static class JsonReader
 
     public static async Task<BeatmapBpmEvent[]> GetBpmEventsAsync(BeatmapInfo info, string directory)
     {
+        if(!info.useAudioMetadata)
+        {
+            //This info was converted from V2, which doesn't use audio metadata for BPM events
+            return null;
+        }
+
         if(string.IsNullOrEmpty(info?.audio?.audioDataFilename))
         {
             //No audio data is listed by the info
+            Debug.LogWarning($"Info.dat lists no AudioData!");
+            ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
             return null;
         }
 
@@ -114,7 +122,14 @@ public static class JsonReader
             string audioPath = Path.Combine(directory, audioDataFilename);
             string audioJson = await ReadFileAsync(audioPath);
 
-            return ParseBpmEventsFromAudioJson(audioJson);
+            BeatmapBpmEvent[] bpmEvents = ParseBpmEventsFromAudioJson(audioJson);
+            if(bpmEvents == null)
+            {
+                ErrorHandler.Instance.QueuePopup(ErrorType.Warning, "Failed to load audio metadata! BPM might not line up.");
+                return null;
+            }
+
+            return bpmEvents;
         }
         catch(Exception err)
         {
